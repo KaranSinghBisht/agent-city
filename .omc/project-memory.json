@@ -85,15 +85,15 @@
   },
   "hotPaths": [
     {
-      "path": "README.md",
-      "accessCount": 10,
-      "lastAccessed": 1780825587317,
+      "path": "BUILD_STATE.md",
+      "accessCount": 13,
+      "lastAccessed": 1780835911295,
       "type": "file"
     },
     {
-      "path": "BUILD_STATE.md",
-      "accessCount": 10,
-      "lastAccessed": 1780825593425,
+      "path": "README.md",
+      "accessCount": 12,
+      "lastAccessed": 1780835837797,
       "type": "file"
     },
     {
@@ -109,27 +109,33 @@
       "type": "file"
     },
     {
+      "path": "scripts/prove-delegation.ts",
+      "accessCount": 5,
+      "lastAccessed": 1780834845588,
+      "type": "file"
+    },
+    {
       "path": "src/live.ts",
       "accessCount": 4,
       "lastAccessed": 1780767212270,
       "type": "file"
     },
     {
-      "path": "scripts/prove-delegation.ts",
+      "path": "src/config.ts",
       "accessCount": 4,
-      "lastAccessed": 1780823302690,
+      "lastAccessed": 1780834700692,
       "type": "file"
     },
     {
       "path": "src/chains.ts",
-      "accessCount": 3,
-      "lastAccessed": 1780763986720,
+      "accessCount": 4,
+      "lastAccessed": 1780834700744,
       "type": "file"
     },
     {
-      "path": "src/config.ts",
-      "accessCount": 3,
-      "lastAccessed": 1780766621835,
+      "path": "src/relayer.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780835693441,
       "type": "file"
     },
     {
@@ -172,12 +178,6 @@
       "path": "src/delegation/delegation.ts",
       "accessCount": 3,
       "lastAccessed": 1780823301845,
-      "type": "file"
-    },
-    {
-      "path": "src/relayer.ts",
-      "accessCount": 3,
-      "lastAccessed": 1780823779851,
       "type": "file"
     },
     {

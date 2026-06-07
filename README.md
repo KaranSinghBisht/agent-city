@@ -33,7 +33,9 @@ thesis — not canonical EIP-3009 x402).
 
 > Verified during development on Base Sepolia. **Reproduce it yourself** with the human end-to-end checklist
 > in **[docs/TESTING.md](./docs/TESTING.md)** — `npm test`, then `npm run demo`, then `npm run dev`.
-> (Mainnet redemption for the $1k 1Shot prize is not yet run — that's the one remaining on-chain step.)
+> **Also proven on Base mainnet** (the $1k 1Shot prize): `CHAIN=base npm run prove` redeemed on-chain —
+> status **200**, tx [`0x0349…448bf`](https://basescan.org/tx/0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf),
+> the EOA EIP-7702-upgraded on mainnet (`getCode → 0xef0100…dae32b`), gas paid in USDC (~0.01 USDC fee), `RedeemedDelegation` emitted.
 
 ## The flow
 

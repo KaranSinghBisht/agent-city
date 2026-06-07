@@ -12,7 +12,7 @@ balance through its own **Crypto-RPC** → private **GLM 4.7** proposes a spend 
 Every scoring track is exercised in one run. typecheck clean, 41/41 unit tests. ✅ `npm run dev` = LIVE web
 dashboard (live banner, Venice on-chain context, approval gate, 1Shot tx status + Basescan link; keyless
 DryRun fallback). ✅ webhook verifier (Ed25519/JWKS, `src/webhook.ts`). Remaining =
-Base mainnet prove via AgentCash (~$11), README/diagram/video, HackQuest submit (MCP needs CC restart).
+demo video (user records; `docs/DEMO_SCRIPT.md`) + HackQuest submit (MCP loaded). ✅ Mainnet 1Shot proven — see below.
 
 ## ✅✅ A2A REDELEGATION PROVEN ON-CHAIN (2026-06-07)
 `npm run prove:a2a` (`scripts/prove-redelegation.ts`) redeems a **2-link redelegation chain** on Base
@@ -37,6 +37,17 @@ a FRESH service address received exactly 50000 base units (0.05 USDC) on-chain. 
 stale — `DelegatedPayer` depends only on the `Executor` interface, so the Jun-6 adapter rewrite applied to
 it for free; it was simply never run live (unit tests inject `DryRunExecutor`). Settlement scheme is the
 7710 redemption (the track thesis), not canonical Coinbase x402 (EIP-3009) — flagged honestly in the README.
+
+## ✅✅ 1SHOT MAINNET REDEMPTION PROVEN (2026-06-07)
+`CHAIN=base npm run prove` redeemed a scoped USDC delegation on **Base mainnet (8453)** through the 1Shot
+permissionless relayer (`relayer.1shotapi.com`). Status **200**, tx
+`0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf`, gasUsed 304887. The signer
+`0x1DC3…0601` was EIP-7702-upgraded **on mainnet** (`getCode → 0xef010063c0c19a…dae32b`) via the single
+authorizationList slot; `RedeemedDelegation` emitted; gas paid in USDC (funded 2.0 → 1.99 = a 0.01 USDC
+fee; the 0.1 work transfer was to-self / net-zero). targetAddress `0x26a5…199a`, feeCollector `0xE936…7604`.
+This flips the last open on-chain item — **Best 1Shot ($1k) is now proven on mainnet**, not just testnet.
+> Funding note: AgentCash can NOT fund an external signer (its `bridge` only moves between your own
+> base/tempo/solana wallets; `fetch` only pays x402 APIs) — the signer was funded with 2 USDC from MetaMask.
 
 ## ⚠️ Reality check (corrects the earlier "all 5 tracks done, 30/30 green")
 The 30/30 unit tests pass but **mock the network and assert the code's own (wrong) shapes**.
@@ -90,7 +101,7 @@ the live on-chain round-trip. That is the prove run below.
    `0x1DC366A33BaA610eA5A60Ba549f619126e590601` is EIP-7702 delegated to the stateless impl
    (`code 0xef0100…dae32b`) and USDC 20 → 19.99 (fee paid in USDC). taskId
    `0x651c8a2d43f419d98756064f433ffc7c6d38af276731a995d241ab9f9276b35d`.
-   ▶ Remaining: one **Base mainnet** run for the $1k 1Shot prize (needs ~$3–5 USDC on Base).
+   ▶ ✅ DONE — **Base mainnet** run proven 2026-06-07: status 200, tx `0x0349…448bf` (signer 7702-upgraded on mainnet, 0.01 USDC fee).
 2. **1Shot track:** webhook receiver (Ed25519 / JWKS) as the tx-status source (low competition, rewarded).
 3. **Demo = EIP-7715 browser flow** (MetaMask grants an `erc20-token-periodic` budget → agent redeems via
    relayer). This is the judging hard gate: "Advanced Permissions in the **main flow**."
