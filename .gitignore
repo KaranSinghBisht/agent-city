@@ -16,3 +16,6 @@ coverage/
 .idea/
 .vscode/
 *.log
+
+# OMC orchestration state (local only)
+.omc/
