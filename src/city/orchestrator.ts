@@ -2,14 +2,13 @@
  * Agent City orchestrator. A Manager hires worker agents; each worker gets a
  * capped sub-budget via A2A redelegation (principal → worker → relayer) and
  * settles a REAL on-chain payment through the 1Shot relayer. Every settlement is
- * an on-chain receipt — together they form the verifiable City Ledger.
+ * an on-chain receipt — together they form the verifiable City Ledger, and each
+ * receipt builds the worker's on-chain reputation (which sizes its next budget).
  *
  * The relayer allows ONE 7702 authorization per request, so workers run one at a
- * time: each request spends its single auth slot upgrading that fresh worker EOA.
- * The principal (already upgraded) is the root delegator; workers need no gas.
+ * time: a fresh worker spends its single auth slot upgrading itself; an already-
+ * upgraded worker needs none. The principal (root delegator) funds the spend.
  */
-import { generatePrivateKey } from "viem/accounts";
-
 import { buildBudgetDelegation } from "../delegation/delegation.js";
 import { DelegatedExecutor, staticResolver } from "../delegation/executor.js";
 import { toPermissionContext, type SignedDelegation } from "../delegation/redeem.js";
@@ -17,8 +16,10 @@ import { buildRedelegation } from "../delegation/redelegate.js";
 import {
   buildUpgradeAuthorization,
   createSmartAccountFromKey,
+  isUpgraded,
 } from "../delegation/smartAccount.js";
 import type { OneShotRelayer } from "../relayer.js";
+import { credit, recordReceipt } from "./reputation.js";
 import type { CityDeps, CityRun, LedgerEntry, WorkerSpec } from "./types.js";
 
 type SmartAccount = Awaited<ReturnType<typeof createSmartAccountFromKey>>;
@@ -85,16 +86,20 @@ async function hireAndPay(
   spec: WorkerSpec,
   entry: LedgerEntry,
 ): Promise<void> {
-  const worker = await createSmartAccountFromKey(generatePrivateKey());
+  const worker = spec.account; // persistent identity → reputation accrues
   entry.agent = worker.account.address;
   entry.status = "hiring";
   deps.onUpdate?.();
 
-  const authorization = await buildUpgradeAuthorization(
-    worker.owner,
+  const alreadyUp = await isUpgraded(
     worker.client,
+    worker.owner.address,
     Number(deps.chainId),
   );
+  const authorization = alreadyUp
+    ? undefined
+    : await buildUpgradeAuthorization(worker.owner, worker.client, Number(deps.chainId));
+
   const context = await buildSubBudget({
     principal: deps.principal,
     worker,
@@ -138,6 +143,10 @@ async function hireAndPay(
   entry.txHash = hash ?? entry.txHash;
   entry.status = status === 200 ? "settled" : "failed";
   entry.settled = status === 200;
+  recordReceipt(deps.repStore, worker.account.address, BigInt(spec.payAmount), status === 200);
+  const c = credit(deps.repStore, worker.account.address);
+  entry.credit = c.score;
+  entry.tier = c.tier;
   deps.onUpdate?.();
 }
 

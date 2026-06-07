@@ -1,26 +1,23 @@
 /** Agent City shared types. The ledger is a list of on-chain payment receipts. */
 import { createSmartAccountFromKey } from "../delegation/smartAccount.js";
 import type { OneShotRelayer } from "../relayer.js";
+import type { ReputationStore } from "./reputation.js";
 
 export type SmartAccount = Awaited<ReturnType<typeof createSmartAccountFromKey>>;
 
-/** One worker the Manager hires: role, the service it pays, and its capped budget. */
+/** One worker the Manager hires: a persistent agent + the service + capped budget. */
 export interface WorkerSpec {
   role: string; // e.g. "Research agent"
   service: string; // e.g. "Market-Data API"
+  account: SmartAccount; // persistent identity (so reputation accrues)
   masterCap: bigint; // principal → worker (the budget it's handed)
-  subCap: bigint; // worker → relayer (narrower; the A2A point)
+  subCap: bigint; // worker → relayer (narrower; sized by reputation)
   payAmount: bigint; // what it actually spends (base units)
   payTo: `0x${string}`; // the service it pays
   reason: string;
 }
 
-export type EntryStatus =
-  | "queued"
-  | "hiring"
-  | "paying"
-  | "settled"
-  | "failed";
+export type EntryStatus = "queued" | "hiring" | "paying" | "settled" | "failed";
 
 /** A City Ledger line — a verifiable on-chain receipt of one agent's payment. */
 export interface LedgerEntry {
@@ -35,6 +32,8 @@ export interface LedgerEntry {
   settled: boolean;
   taskId?: string;
   txHash?: string;
+  credit?: number; // earned credit score after this receipt
+  tier?: string;
   error?: string;
 }
 
@@ -55,6 +54,7 @@ export interface CityDeps {
   targetAddress: `0x${string}`;
   decimals: number;
   principal: SmartAccount; // already 7702-upgraded (root delegator)
+  repStore: ReputationStore; // accrues across runs (server memory)
   /** Called whenever the run mutates, so the API can stream progress to the UI. */
   onUpdate?: () => void;
 }
