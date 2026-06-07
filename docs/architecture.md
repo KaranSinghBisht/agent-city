@@ -16,7 +16,7 @@ flowchart TD
 
   EX -->|"estimate7710 → send7710<br/>(fee transfer + work transfer)"| R["1Shot permissionless relayer"]
   R -->|"redeemDelegations<br/>gas in USDC · EIP-7702 upgrade"| CH["Base (on-chain) ✅"]
-  R -.->|"Ed25519 webhook / getStatus<br/>110 → 200"| AG
+  R -.->|"getStatus polling 110 → 200<br/>(Ed25519 webhook verifier built + tested, not wired)"| AG
 
   U -.->|"revoke all authority anytime"| AG
 ```

@@ -1,6 +1,6 @@
 /**
  * Agent reputation derived from on-chain receipts. Credit is EARNED by verifiable
- * behaviour (settled payments + volume), recomputable from chain — not asserted.
+ * behaviour (count + the quoted price of settled receipts) — earned, not asserted.
  * ERC-8004-flavoured: a portable on-chain credit score for agents. Kept in memory
  * for the demo (resets on restart); the inputs are the same on-chain receipts.
  */
