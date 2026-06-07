@@ -1,14 +1,17 @@
 /**
  * Agent City orchestrator. A Manager hires worker agents; each worker gets a
- * capped sub-budget via A2A redelegation (principal → worker → relayer) and
- * settles a REAL on-chain payment through the 1Shot relayer. Every settlement is
- * an on-chain receipt — together they form the verifiable City Ledger, and each
- * receipt builds the worker's on-chain reputation (which sizes its next budget).
+ * capped sub-budget via A2A redelegation (principal → worker → relayer), then
+ * BUYS from a real x402 service: GET → HTTP 402 → pay the price as an ERC-7710
+ * redemption through 1Shot → receive the resource. Every settlement is an
+ * on-chain receipt (the City Ledger) and builds the worker's reputation, which
+ * sizes its next budget.
  *
  * The relayer allows ONE 7702 authorization per request, so workers run one at a
  * time: a fresh worker spends its single auth slot upgrading itself; an already-
  * upgraded worker needs none. The principal (root delegator) funds the spend.
  */
+import type { Executor } from "../agent/planner.js";
+import type { ExecutionResult, ProposedAction } from "../agent/types.js";
 import { buildBudgetDelegation } from "../delegation/delegation.js";
 import { DelegatedExecutor, staticResolver } from "../delegation/executor.js";
 import { toPermissionContext, type SignedDelegation } from "../delegation/redeem.js";
@@ -19,12 +22,25 @@ import {
   isUpgraded,
 } from "../delegation/smartAccount.js";
 import type { OneShotRelayer } from "../relayer.js";
+import { X402Client } from "../x402/client.js";
+import { DelegatedPayer } from "../x402/payer.js";
 import { credit, recordReceipt } from "./reputation.js";
 import type { CityDeps, CityRun, LedgerEntry, WorkerSpec } from "./types.js";
 
 type SmartAccount = Awaited<ReturnType<typeof createSmartAccountFromKey>>;
 
 const shrink = (a: string): string => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
+
+/** Wrap an Executor to capture the taskId of the redemption it submits. */
+function recordingExecutor(inner: Executor, sink: { taskId?: string }): Executor {
+  return {
+    execute: async (action: ProposedAction): Promise<ExecutionResult> => {
+      const result = await inner.execute(action);
+      if (result.ok && result.taskId) sink.taskId = result.taskId;
+      return result;
+    },
+  };
+}
 
 /** Sign the 2-link chain principal →(masterCap)→ worker →(subCap)→ relayer. */
 async function buildSubBudget(opts: {
@@ -80,7 +96,7 @@ async function settle(
   return { status: 0 };
 }
 
-/** Hire one worker, grant a sub-budget, settle its payment on-chain, log a receipt. */
+/** Hire one worker, grant a sub-budget, buy from its x402 service, log a receipt. */
 async function hireAndPay(
   deps: CityDeps,
   spec: WorkerSpec,
@@ -115,24 +131,32 @@ async function hireAndPay(
     authorization,
   });
 
+  // Pay-per-call: GET the x402 service; on 402, settle the price under the cap.
   entry.status = "paying";
   deps.onUpdate?.();
-  const result = await executor.execute({
-    kind: "transfer",
-    to: spec.payTo,
-    token: deps.token,
-    amount: spec.payAmount.toString(),
-    reason: spec.reason,
-  });
-  entry.taskId = result.taskId;
-  if (!result.ok || !result.taskId) {
+  const sink: { taskId?: string } = {};
+  const payer = new DelegatedPayer(recordingExecutor(executor, sink), spec.subCap);
+  try {
+    const res = await new X402Client(payer).fetch(spec.serviceUrl);
+    const body = (await res.json()) as { data?: string };
+    if (res.status !== 200) throw new Error(`x402 service returned ${res.status}`);
+    entry.data = body.data;
+  } catch (err) {
+    entry.status = "failed";
+    entry.error = (err as Error).message;
+    deps.onUpdate?.();
+    return;
+  }
+  entry.taskId = sink.taskId;
+  if (!sink.taskId) {
     entry.status = "failed";
     deps.onUpdate?.();
     return;
   }
+
   const { status, hash } = await settle(
     deps.relayer,
-    result.taskId as `0x${string}`,
+    sink.taskId as `0x${string}`,
     (_s, h) => {
       if (h && !entry.txHash) {
         entry.txHash = h;
@@ -150,7 +174,7 @@ async function hireAndPay(
   deps.onUpdate?.();
 }
 
-/** Run the city: hire each worker in turn, settling real on-chain payments. */
+/** Run the city: hire each worker in turn, buying from x402 services on-chain. */
 export async function runCity(
   deps: CityDeps,
   run: CityRun,
@@ -191,7 +215,7 @@ function summarize(run: CityRun): string {
     (n, e) => (e.settled ? n + BigInt(e.amount) : n),
     0n,
   );
-  return `${ok}/${run.ledger.length} agents paid · ${total.toString()} base units settled on-chain (agents: ${run.ledger
+  return `${ok}/${run.ledger.length} agents paid via x402 · ${total.toString()} base units settled on-chain (${run.ledger
     .map((e) => `${e.role} ${shrink(e.agent)}`)
     .join(", ")}).`;
 }

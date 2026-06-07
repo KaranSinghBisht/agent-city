@@ -132,6 +132,7 @@ function render(run){
        '<span class="cap">budget '+esc(fmtUSDC(e.masterCap))+' → '+esc(fmtUSDC(e.subCap))+'</span>'+
        '<span>pays '+esc(fmtUSDC(e.amount))+'</span></div>'+
        (e.credit!=null?'<div class="meta" style="margin-top:4px"><span class="cap">credit '+esc(e.credit)+' · '+esc(e.tier||'')+'</span></div>':'')+
+       (e.data?'<div class="meta" style="margin-top:4px"><span>received: '+esc(e.data)+'</span></div>':'')+
        (e.txHash?'<div>'+rcpt(run,e)+'</div>':'')+'</div>';}
   h+='</div>';
 

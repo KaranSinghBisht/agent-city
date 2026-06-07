@@ -5,15 +5,16 @@ import type { ReputationStore } from "./reputation.js";
 
 export type SmartAccount = Awaited<ReturnType<typeof createSmartAccountFromKey>>;
 
-/** One worker the Manager hires: a persistent agent + the service + capped budget. */
+/** One worker the Manager hires: a persistent agent + the x402 service + budget. */
 export interface WorkerSpec {
   role: string; // e.g. "Research agent"
   service: string; // e.g. "Market-Data API"
   account: SmartAccount; // persistent identity (so reputation accrues)
   masterCap: bigint; // principal → worker (the budget it's handed)
   subCap: bigint; // worker → relayer (narrower; sized by reputation)
-  payAmount: bigint; // what it actually spends (base units)
+  payAmount: bigint; // the service's price (base units)
   payTo: `0x${string}`; // the service it pays
+  serviceUrl: string; // the x402 endpoint it buys from
   reason: string;
 }
 
@@ -32,6 +33,7 @@ export interface LedgerEntry {
   settled: boolean;
   taskId?: string;
   txHash?: string;
+  data?: string; // the resource the agent received from the x402 service
   credit?: number; // earned credit score after this receipt
   tier?: string;
   error?: string;
