@@ -13,6 +13,10 @@ import type { RunState } from "./agent/types.js";
 import { APP_HTML } from "./ui/app.js";
 import { LANDING_HTML } from "./ui/landing.js";
 import type { Reasoner } from "./venice.js";
+import { randomUUID } from "node:crypto";
+import { runCity } from "./city/orchestrator.js";
+import type { CityBase } from "./city/live.js";
+import type { CityRun } from "./city/types.js";
 
 export interface DemoInfo {
   mode: "live" | "dry-run";
@@ -34,6 +38,8 @@ export interface ApiDeps {
   ) => Promise<{ status: number; hash?: string }>;
   /** Static demo banner info. */
   info?: DemoInfo;
+  /** Builds live city deps (principal, relayer, caps); omitted in dry-run/tests. */
+  cityFactory?: () => Promise<CityBase>;
 }
 
 function serialize(state: RunState) {
@@ -146,6 +152,53 @@ export function createApi(deps: ApiDeps): Hono {
     );
     runs.set(next.id, next);
     return c.json(serialize(next));
+  });
+
+  const cityRuns = new Map<string, CityRun>();
+  let cityBasePromise: Promise<CityBase> | null = null;
+
+  app.post("/city/run", async (c) => {
+    if (revoked) return c.json({ error: "authority has been revoked" }, 403);
+    const factory = deps.cityFactory;
+    if (!factory)
+      return c.json({ error: "live mode required for the city demo" }, 503);
+    const body = (await c.req.json().catch(() => ({}))) as { goal?: unknown };
+    const goal =
+      typeof body.goal === "string" && body.goal
+        ? body.goal
+        : "Produce a market brief on ETH";
+    let base: CityBase;
+    try {
+      cityBasePromise ??= factory();
+      base = await cityBasePromise;
+    } catch (err) {
+      cityBasePromise = null;
+      return c.json({ error: (err as Error).message }, 503);
+    }
+    const run: CityRun = {
+      id: randomUUID(),
+      goal,
+      status: "queued",
+      ledger: [],
+      network: base.network,
+      explorerTxBase: base.explorerTxBase,
+    };
+    cityRuns.set(run.id, run);
+    void runCity(
+      { ...base.deps, onUpdate: () => undefined },
+      run,
+      base.makeSpecs(goal),
+    ).catch((err) => {
+      run.status = "failed";
+      run.result = (err as Error).message;
+    });
+    return c.json({ id: run.id });
+  });
+
+  app.get("/city/run/:id", (c) => {
+    const run = cityRuns.get(c.req.param("id"));
+    if (!run) return c.json({ error: "run not found" }, 404);
+    return c.json(run);
   });
 
   return app;

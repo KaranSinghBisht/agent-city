@@ -9,6 +9,7 @@ import { DryRunExecutor } from "./agent/dryRunExecutor.js";
 import type { Policy } from "./agent/policy.js";
 import { createApi, type ApiDeps } from "./api.js";
 import { resolveChain } from "./chains.js";
+import { createCityBase } from "./city/live.js";
 import { config } from "./config.js";
 import { createLiveSteward } from "./live.js";
 import { VeniceReasoner } from "./venice.js";
@@ -16,9 +17,7 @@ import { VeniceReasoner } from "./venice.js";
 async function buildDeps(): Promise<ApiDeps> {
   try {
     const live = await createLiveSteward();
-    process.stdout.write(
-      `LIVE mode — treasury ${live.account.address} on ${config.chainName}\n`,
-    );
+    process.stdout.write(`LIVE mode — treasury ${live.account.address} on ${config.chainName}\n`);
     const explorerTxBase = resolveChain(config.chainName).isTestnet
       ? "https://sepolia.basescan.org/tx/"
       : "https://basescan.org/tx/";
@@ -29,11 +28,11 @@ async function buildDeps(): Promise<ApiDeps> {
       contextProvider: live.onchainContext,
       statusChecker: async (taskId: string) => {
         const s = await live.relayer.getStatus(taskId as `0x${string}`);
-        const receiptHash = (
-          s.receipt as { transactionHash?: string } | undefined
-        )?.transactionHash;
+        const receiptHash = (s.receipt as { transactionHash?: string } | undefined)
+          ?.transactionHash;
         return { status: s.status, hash: s.hash || receiptHash };
       },
+      cityFactory: createCityBase,
       info: {
         mode: "live",
         network: config.chainName,
@@ -43,9 +42,7 @@ async function buildDeps(): Promise<ApiDeps> {
       },
     };
   } catch (err) {
-    process.stdout.write(
-      `DRY-RUN mode (no live creds: ${(err as Error).message})\n`,
-    );
+    process.stdout.write(`DRY-RUN mode (no live creds: ${(err as Error).message})\n`);
     const { usdc } = resolveChain(config.chainName);
     const policy: Policy = {
       token: usdc,
@@ -65,6 +62,6 @@ async function buildDeps(): Promise<ApiDeps> {
 buildDeps().then((deps) => {
   const app = createApi(deps);
   serve({ fetch: app.fetch, port: 8787 }, (i) => {
-    process.stdout.write(`Steward on http://localhost:${i.port}\n`);
+    process.stdout.write(`Agent City on http://localhost:${i.port}\n`);
   });
 });
