@@ -64,6 +64,8 @@ textarea#goal:disabled{opacity:.5}
   <button class="btn btn-danger" id="revoke">Revoke the city</button>
 </div></nav>
 
+<div class="container" style="padding-top:18px"><a href="/grant" class="btn btn-primary" style="width:100%;justify-content:center">① Grant the city's budget with MetaMask — Advanced Permissions (ERC-7715) →</a></div>
+
 <main class="container app-grid">
   <aside class="panel">
     <div class="card">

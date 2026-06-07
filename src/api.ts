@@ -11,6 +11,7 @@ import { Steward, type Executor } from "./agent/planner.js";
 import type { Policy } from "./agent/policy.js";
 import type { RunState } from "./agent/types.js";
 import { APP_HTML } from "./ui/app.js";
+import { GRANT_HTML } from "./ui/grant.js";
 import { LANDING_HTML } from "./ui/landing.js";
 import type { Reasoner } from "./venice.js";
 import { randomUUID } from "node:crypto";
@@ -200,6 +201,33 @@ export function createApi(deps: ApiDeps): Hono {
     if (!run) return c.json({ error: "run not found" }, 404);
     return c.json(run);
   });
+
+  // ERC-7715 Advanced Permissions front door (browser grant via MetaMask Flask).
+  let lastGrant: unknown = null;
+  app.get("/grant", (c) => c.html(GRANT_HTML));
+  app.get("/city/config", async (c) => {
+    const factory = deps.cityFactory;
+    if (!factory)
+      return c.json({ error: "live mode required for the city" }, 503);
+    try {
+      cityBasePromise ??= factory();
+      const base = await cityBasePromise;
+      return c.json({
+        chainId: base.deps.chainId,
+        usdc: base.deps.token,
+        agent: base.deps.principal.account.address,
+        network: base.network,
+      });
+    } catch (err) {
+      cityBasePromise = null;
+      return c.json({ error: (err as Error).message }, 503);
+    }
+  });
+  app.post("/city/grant", async (c) => {
+    lastGrant = await c.req.json().catch(() => null);
+    return c.json({ ok: Boolean(lastGrant) });
+  });
+  app.get("/city/grant", (c) => c.json({ grant: lastGrant }));
 
   return app;
 }
