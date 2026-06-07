@@ -16,7 +16,9 @@ import { VeniceReasoner } from "./venice.js";
 async function buildDeps(): Promise<ApiDeps> {
   try {
     const live = await createLiveSteward();
-    process.stdout.write(`LIVE mode — treasury ${live.account.address} on ${config.chainName}\n`);
+    process.stdout.write(
+      `LIVE mode — treasury ${live.account.address} on ${config.chainName}\n`,
+    );
     const explorerTxBase = resolveChain(config.chainName).isTestnet
       ? "https://sepolia.basescan.org/tx/"
       : "https://basescan.org/tx/";
@@ -27,7 +29,10 @@ async function buildDeps(): Promise<ApiDeps> {
       contextProvider: live.onchainContext,
       statusChecker: async (taskId: string) => {
         const s = await live.relayer.getStatus(taskId as `0x${string}`);
-        return { status: s.status, hash: s.hash };
+        const receiptHash = (
+          s.receipt as { transactionHash?: string } | undefined
+        )?.transactionHash;
+        return { status: s.status, hash: s.hash || receiptHash };
       },
       info: {
         mode: "live",
@@ -38,7 +43,9 @@ async function buildDeps(): Promise<ApiDeps> {
       },
     };
   } catch (err) {
-    process.stdout.write(`DRY-RUN mode (no live creds: ${(err as Error).message})\n`);
+    process.stdout.write(
+      `DRY-RUN mode (no live creds: ${(err as Error).message})\n`,
+    );
     const { usdc } = resolveChain(config.chainName);
     const policy: Policy = {
       token: usdc,

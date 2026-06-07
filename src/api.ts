@@ -10,7 +10,8 @@ import { Hono } from "hono";
 import { Steward, type Executor } from "./agent/planner.js";
 import type { Policy } from "./agent/policy.js";
 import type { RunState } from "./agent/types.js";
-import { INDEX_HTML } from "./ui.js";
+import { APP_HTML } from "./ui/app.js";
+import { LANDING_HTML } from "./ui/landing.js";
 import type { Reasoner } from "./venice.js";
 
 export interface DemoInfo {
@@ -28,7 +29,9 @@ export interface ApiDeps {
   /** Live on-chain context (read via Venice Crypto-RPC), prepended to each goal. */
   contextProvider?: () => Promise<string>;
   /** Resolve a relayer task to its on-chain status (the UI polls this). */
-  statusChecker?: (taskId: string) => Promise<{ status: number; hash?: string }>;
+  statusChecker?: (
+    taskId: string,
+  ) => Promise<{ status: number; hash?: string }>;
   /** Static demo banner info. */
   info?: DemoInfo;
 }
@@ -63,9 +66,12 @@ export function createApi(deps: ApiDeps): Hono {
   let revoked = false;
   const app = new Hono();
 
-  app.get("/", (c) => c.html(INDEX_HTML));
+  app.get("/", (c) => c.html(LANDING_HTML));
+  app.get("/app", (c) => c.html(APP_HTML));
   app.get("/healthz", (c) => c.json({ ok: true }));
-  app.get("/info", (c) => c.json(deps.info ?? { mode: "dry-run", network: "none" }));
+  app.get("/info", (c) =>
+    c.json(deps.info ?? { mode: "dry-run", network: "none" }),
+  );
 
   app.get("/policy", (c) =>
     c.json({
@@ -129,8 +135,15 @@ export function createApi(deps: ApiDeps): Hono {
     if (state.status !== "awaiting_approval") {
       return c.json({ error: "run is not awaiting approval" }, 409);
     }
-    const body = (await c.req.json().catch(() => ({}))) as { approved?: unknown; note?: unknown };
-    const next = await steward.approve(state, Boolean(body.approved), String(body.note ?? ""));
+    const body = (await c.req.json().catch(() => ({}))) as {
+      approved?: unknown;
+      note?: unknown;
+    };
+    const next = await steward.approve(
+      state,
+      Boolean(body.approved),
+      String(body.note ?? ""),
+    );
     runs.set(next.id, next);
     return c.json(serialize(next));
   });

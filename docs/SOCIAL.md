@@ -74,6 +74,9 @@ It's an AI treasurer that *physically can't* overspend — the limit is a @MetaM
 ---
 
 ## Posting notes
+- **Best Social criterion (from the official rules):** you must tag **@MetaMaskDev** *and* showcase how
+  **MetaMask Smart Accounts / Advanced Permissions** improved the UX of *obtaining permissions from the
+  user*. Tweets 1–2 hit this (the scoped delegation IS that permission UX) — keep that framing front-and-center.
 - Each tweet is ≤ 280 chars; trim if your client disagrees on the emoji counts.
 - Best order: post tweet 1 with the video, then reply-chain 2→8.
 - Replace `0x24af…ae27` / `0xbbce…450b` with full Basescan links if you want clickthrough.

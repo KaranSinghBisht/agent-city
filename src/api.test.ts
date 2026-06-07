@@ -22,11 +22,21 @@ const policy: Policy = {
 
 const PROPOSE = JSON.stringify({
   action: "propose",
-  proposal: { kind: "transfer", to: "0xmerchant", token: "0xusdc", amount: "50", reason: "pay" },
+  proposal: {
+    kind: "transfer",
+    to: "0xmerchant",
+    token: "0xusdc",
+    amount: "50",
+    reason: "pay",
+  },
 });
 
 function api(script: string[]) {
-  return createApi({ reasoner: new FakeReasoner(script), executor: new DryRunExecutor(), policy });
+  return createApi({
+    reasoner: new FakeReasoner(script),
+    executor: new DryRunExecutor(),
+    policy,
+  });
 }
 
 function post(app: ReturnType<typeof api>, path: string, body: unknown) {
@@ -41,7 +51,7 @@ describe("Steward API", () => {
   it("serves the demo UI at /", async () => {
     const res = await api([]).request("/");
     expect(res.status).toBe(200);
-    expect(await res.text()).toContain("Steward");
+    expect(await res.text()).toContain("Agent City");
   });
 
   it("reports healthy", async () => {
@@ -49,20 +59,28 @@ describe("Steward API", () => {
   });
 
   it("exposes the budget policy (bigints serialized)", async () => {
-    const body = (await (await api([]).request("/policy")).json()) as { maxPerTx: string; revoked: boolean };
+    const body = (await (await api([]).request("/policy")).json()) as {
+      maxPerTx: string;
+      revoked: boolean;
+    };
     expect(body.maxPerTx).toBe("100");
     expect(body.revoked).toBe(false);
   });
 
   it("starts a run that pauses for approval, then completes on approve", async () => {
-    const app = api([PROPOSE, JSON.stringify({ action: "final", output: "Paid." })]);
+    const app = api([
+      PROPOSE,
+      JSON.stringify({ action: "final", output: "Paid." }),
+    ]);
 
     const created = await post(app, "/runs", { goal: "pay the invoice" });
     expect(created.status).toBe(200);
     const body = (await created.json()) as { id: string; status: string };
     expect(body.status).toBe("awaiting_approval");
 
-    const approved = await post(app, `/runs/${body.id}/approve`, { approved: true });
+    const approved = await post(app, `/runs/${body.id}/approve`, {
+      approved: true,
+    });
     expect(((await approved.json()) as { status: string }).status).toBe("done");
   });
 

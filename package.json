@@ -12,7 +12,8 @@
     "prove": "tsx scripts/prove-delegation.ts",
     "prove:a2a": "tsx scripts/prove-redelegation.ts",
     "prove:x402": "tsx scripts/prove-x402.ts",
-    "demo": "tsx scripts/demo-live.ts"
+    "demo": "tsx scripts/demo-live.ts",
+    "city": "tsx scripts/run-city.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.4",
