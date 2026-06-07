@@ -1,0 +1,33 @@
+{
+  "name": "steward",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An AI workforce that can only ever spend inside cryptographic budget limits — MetaMask delegation + private Venice reasoning + 1Shot gasless execution.",
+  "license": "MIT",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/server.ts",
+    "prove": "tsx scripts/prove-delegation.ts",
+    "prove:a2a": "tsx scripts/prove-redelegation.ts",
+    "prove:x402": "tsx scripts/prove-x402.ts",
+    "demo": "tsx scripts/demo-live.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "@metamask/smart-accounts-kit": "^1.6.0",
+    "@noble/ed25519": "^2.3.0",
+    "dotenv": "^16.4.5",
+    "hono": "^4.12.23",
+    "openai": "^4.67.3",
+    "safe-stable-stringify": "^2.5.0",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

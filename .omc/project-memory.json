@@ -1,0 +1,389 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1780757681268,
+  "projectRoot": "/Users/kryptos/Desktop/Projects/hackathons/metamask-dev-cookoff",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "vitest",
+        "version": "2.1.0",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "npm test",
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "test": "vitest run",
+      "typecheck": "tsc --noEmit",
+      "dev": "tsx src/server.ts",
+      "prove": "tsx scripts/prove-delegation.ts"
+    }
+  },
+  "conventions": {
+    "namingStyle": "camelCase/PascalCase",
+    "importStyle": "ES modules",
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "scripts",
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1780757681093,
+      "keyFiles": [
+        "prove-delegation.ts"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 9,
+      "lastAccessed": 1780757681094,
+      "keyFiles": [
+        "api.test.ts",
+        "api.ts",
+        "chains.ts",
+        "config.ts",
+        "relayer.test.ts"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "README.md",
+      "accessCount": 10,
+      "lastAccessed": 1780825587317,
+      "type": "file"
+    },
+    {
+      "path": "BUILD_STATE.md",
+      "accessCount": 10,
+      "lastAccessed": 1780825593425,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/smartAccount.ts",
+      "accessCount": 5,
+      "lastAccessed": 1780823520530,
+      "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 5,
+      "lastAccessed": 1780825406561,
+      "type": "file"
+    },
+    {
+      "path": "src/live.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780767212270,
+      "type": "file"
+    },
+    {
+      "path": "scripts/prove-delegation.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780823302690,
+      "type": "file"
+    },
+    {
+      "path": "src/chains.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780763986720,
+      "type": "file"
+    },
+    {
+      "path": "src/config.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780766621835,
+      "type": "file"
+    },
+    {
+      "path": "src/api.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780768301456,
+      "type": "file"
+    },
+    {
+      "path": "src/ui.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780768358785,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/redelegate.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780823299053,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/redelegate.test.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780823299506,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/executor.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780823300451,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/redeem.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780823300890,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/delegation.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780823301845,
+      "type": "file"
+    },
+    {
+      "path": "src/relayer.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780823779851,
+      "type": "file"
+    },
+    {
+      "path": "src/server.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780825310539,
+      "type": "file"
+    },
+    {
+      "path": "src/relayer.test.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780762466781,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/redeem.test.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780762472694,
+      "type": "file"
+    },
+    {
+      "path": "src/delegation/executor.test.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780762507996,
+      "type": "file"
+    },
+    {
+      "path": "src/venice.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780766625548,
+      "type": "file"
+    },
+    {
+      "path": ".env.example",
+      "accessCount": 2,
+      "lastAccessed": 1780766627394,
+      "type": "file"
+    },
+    {
+      "path": "scripts/demo-live.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780767200408,
+      "type": "file"
+    },
+    {
+      "path": "src/webhook.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780767688179,
+      "type": "file"
+    },
+    {
+      "path": "src/webhook.test.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780767690156,
+      "type": "file"
+    },
+    {
+      "path": "PLAN.md",
+      "accessCount": 2,
+      "lastAccessed": 1780822689205,
+      "type": "file"
+    },
+    {
+      "path": "src/x402/payer.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780825199005,
+      "type": "file"
+    },
+    {
+      "path": "src/x402/client.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780825199752,
+      "type": "file"
+    },
+    {
+      "path": "src/x402/types.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780825200216,
+      "type": "file"
+    },
+    {
+      "path": "src/agent/dryRunExecutor.ts",
+      "accessCount": 2,
+      "lastAccessed": 1780825310763,
+      "type": "file"
+    },
+    {
+      "path": "docs/architecture.md",
+      "accessCount": 2,
+      "lastAccessed": 1780833809818,
+      "type": "file"
+    },
+    {
+      "path": "src/agent/planner.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780758511444,
+      "type": "file"
+    },
+    {
+      "path": ".agents/skills/public-relayer/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1780760763567,
+      "type": "file"
+    },
+    {
+      "path": ".agents/skills/public-relayer/references/schemas.md",
+      "accessCount": 1,
+      "lastAccessed": 1780760764044,
+      "type": "file"
+    },
+    {
+      "path": ".agents/skills/public-relayer/references/examples.md",
+      "accessCount": 1,
+      "lastAccessed": 1780760764949,
+      "type": "file"
+    },
+    {
+      "path": "src/relayerJson.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780760991788,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_envcheck.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780761213442,
+      "type": "file"
+    },
+    {
+      "path": "src/agent/types.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780762036216,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_genenv.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780762988227,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_status.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780763465723,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_verify.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780763551966,
+      "type": "file"
+    },
+    {
+      "path": ".agents/skills/venice-crypto-rpc/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1780763861153,
+      "type": "file"
+    },
+    {
+      "path": ".agents/skills/venice-models/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1780763861203,
+      "type": "file"
+    },
+    {
+      "path": ".agents/skills/venice-chat/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1780763861842,
+      "type": "file"
+    },
+    {
+      "path": "src/veniceRpc.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780764002518,
+      "type": "file"
+    },
+    {
+      "path": "src/veniceRpc.test.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780764007758,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_venice.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780766420611,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_venicechk.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780766484103,
+      "type": "file"
+    },
+    {
+      "path": "src/agent/policy.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780766681420,
+      "type": "file"
+    },
+    {
+      "path": "scripts/_agent.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780766715477,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

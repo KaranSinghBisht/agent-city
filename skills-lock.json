@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "skills": {
+    "my-venice-skill": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "template/SKILL.md",
+      "computedHash": "e4828e0f58ddbaab94b4856a767edefa14c3a4caa6740d6429f6094fb8a1515f"
+    },
+    "public-relayer": {
+      "source": "1Shot-API/skills",
+      "sourceType": "github",
+      "skillPath": "public-relayer/SKILL.md",
+      "computedHash": "808a64162cdc6f698118b6e239d30bd078bd03bd6cbb36b7870ad5da5604fae5"
+    },
+    "venice-api-keys": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-api-keys/SKILL.md",
+      "computedHash": "52a7796ceef60a28c3a4b2d50f1d1b8b4ce84231c1c44397207c107e2c1fb7fe"
+    },
+    "venice-api-overview": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-api-overview/SKILL.md",
+      "computedHash": "184fe33ac3a8067d5167d8a1c9f3acec7e4c13d1815f7c2cab2699d255b15b77"
+    },
+    "venice-audio-music": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-audio-music/SKILL.md",
+      "computedHash": "7cb04f1cc018d2d41a201f2842b2f8e081dadef22ed9b3668a5270d7c5897428"
+    },
+    "venice-audio-speech": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-audio-speech/SKILL.md",
+      "computedHash": "709e5aa6d986fdb0139a19fd3b22757e78915d8ccbd6c841162dd8c3afef4066"
+    },
+    "venice-audio-transcription": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-audio-transcription/SKILL.md",
+      "computedHash": "d8e284095b630680a8fd22edc2c8ff7b4ab423af54d553d808bf52c37af6a408"
+    },
+    "venice-augment": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-augment/SKILL.md",
+      "computedHash": "bc9fc054cae22152fb89455f9ac7026fced4e9d621fed496d207b62f9abc337b"
+    },
+    "venice-auth": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-auth/SKILL.md",
+      "computedHash": "599b35c2463b0073a886842711cd28dd25f9bc0a2de5a3a4c9eeadfa6157acd4"
+    },
+    "venice-billing": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-billing/SKILL.md",
+      "computedHash": "489318c5f8ad22c6f406c5d615484d8cb9b193a1b121a03fc0392d400ef8cfe1"
+    },
+    "venice-characters": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-characters/SKILL.md",
+      "computedHash": "35b54e71d13531a116d871050b7b73d3598337af24ca232ac1ab656bd7f63449"
+    },
+    "venice-chat": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-chat/SKILL.md",
+      "computedHash": "cfef66451b6eff0cdb3b8d764c51084f2808c6d5746a94b9db5cc7a80ba8a1b2"
+    },
+    "venice-crypto-rpc": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-crypto-rpc/SKILL.md",
+      "computedHash": "f9ae53db572d365fc60eb0b804fe991f8d095aa6b42741f5183442fc1840794e"
+    },
+    "venice-embeddings": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-embeddings/SKILL.md",
+      "computedHash": "912c9141aed62dc269c0cd06ce16f5f20b37b2abf1df9689a3732350f1f05252"
+    },
+    "venice-errors": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-errors/SKILL.md",
+      "computedHash": "77a89a48a6b478cd452e4e9a959f254fadd8c8981d6a86c359652151914a9709"
+    },
+    "venice-image-edit": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-image-edit/SKILL.md",
+      "computedHash": "1b3e878116b384a3a39c05c70cf0e69098ad12ecda773c11c683c9c768137597"
+    },
+    "venice-image-generate": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-image-generate/SKILL.md",
+      "computedHash": "26858370aa165fb588d65ecc6cf3b14dc197d0f93c51ecd061dc2f070ca4f3bc"
+    },
+    "venice-models": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-models/SKILL.md",
+      "computedHash": "ae716b505937e288e1e3f1588fbbe9199b652575a607e7f270a251041a803732"
+    },
+    "venice-responses": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-responses/SKILL.md",
+      "computedHash": "7eef2362744e989b3550f7d7d273830b7f3fc11ae16e02001b6c97bacc2f2f26"
+    },
+    "venice-video": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-video/SKILL.md",
+      "computedHash": "354e0ce8eef845b41d0d5812645b28d0302fffc491aeba4f6307223bc3796e83"
+    },
+    "venice-x402": {
+      "source": "veniceai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/venice-x402/SKILL.md",
+      "computedHash": "edaf027ad32eb6e7bbee9cf412072bd0d392fc7603ac11b827b1f6312c5c92c4"
+    }
+  }
+}

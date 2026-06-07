@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Secrets — NEVER commit real keys / private keys
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+.next/
+coverage/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.log
