@@ -37,9 +37,15 @@ export async function createCityBase(): Promise<CityBase> {
     chainCaps.tokens[0];
   if (!usdc) throw new Error("relayer advertises no payment tokens");
   if (
-    !(await isUpgraded(principal.client, principal.owner.address, Number(chainId)))
+    !(await isUpgraded(
+      principal.client,
+      principal.owner.address,
+      Number(chainId),
+    ))
   ) {
-    throw new Error("treasury not 7702-upgraded — run `npm run prove` once first.");
+    throw new Error(
+      "treasury not 7702-upgraded — run `npm run prove` once first.",
+    );
   }
   const dp = Number(usdc.decimals);
   const repStore: ReputationStore = new Map();
@@ -53,8 +59,14 @@ export async function createCityBase(): Promise<CityBase> {
 
   // Persistent roster so each worker's reputation builds over runs.
   const roster: { role: string; account: SmartAccount }[] = [
-    { role: "Research agent", account: await createSmartAccountFromKey(generatePrivateKey()) },
-    { role: "Analyst agent", account: await createSmartAccountFromKey(generatePrivateKey()) },
+    {
+      role: "Research agent",
+      account: await createSmartAccountFromKey(generatePrivateKey()),
+    },
+    {
+      role: "Analyst agent",
+      account: await createSmartAccountFromKey(generatePrivateKey()),
+    },
   ];
 
   const makeSpecs = (): WorkerSpec[] =>
@@ -62,12 +74,12 @@ export async function createCityBase(): Promise<CityBase> {
       const s = svc.services.find((x) => x.role === r.role);
       if (!s) throw new Error(`no service for ${r.role}`);
       const c = credit(repStore, r.account.account.address);
-      const sub = 0.2 + (c.score / 100) * 0.3; // 0.20 → 0.50 USDC, by reputation
+      const sub = 0.5 + (c.score / 100) * 0.5; // 0.50 → 1.00 USDC (covers work + relayer fee)
       return {
         role: r.role,
         service: s.service,
         account: r.account,
-        masterCap: parseUnits("0.5", dp),
+        masterCap: parseUnits("1", dp),
         subCap: parseUnits(sub.toFixed(2), dp),
         payAmount: s.price,
         payTo: s.payTo,

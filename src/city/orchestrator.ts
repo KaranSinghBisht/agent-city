@@ -14,7 +14,10 @@ import type { Executor } from "../agent/planner.js";
 import type { ExecutionResult, ProposedAction } from "../agent/types.js";
 import { buildBudgetDelegation } from "../delegation/delegation.js";
 import { DelegatedExecutor, staticResolver } from "../delegation/executor.js";
-import { toPermissionContext, type SignedDelegation } from "../delegation/redeem.js";
+import {
+  toPermissionContext,
+  type SignedDelegation,
+} from "../delegation/redeem.js";
 import { buildRedelegation } from "../delegation/redelegate.js";
 import {
   buildUpgradeAuthorization,
@@ -29,10 +32,14 @@ import type { CityDeps, CityRun, LedgerEntry, WorkerSpec } from "./types.js";
 
 type SmartAccount = Awaited<ReturnType<typeof createSmartAccountFromKey>>;
 
-const shrink = (a: string): string => (a ? a.slice(0, 6) + "…" + a.slice(-4) : "");
+const shrink = (a: string): string =>
+  a ? a.slice(0, 6) + "…" + a.slice(-4) : "";
 
 /** Wrap an Executor to capture the taskId of the redemption it submits. */
-function recordingExecutor(inner: Executor, sink: { taskId?: string }): Executor {
+function recordingExecutor(
+  inner: Executor,
+  sink: { taskId?: string },
+): Executor {
   return {
     execute: async (action: ProposedAction): Promise<ExecutionResult> => {
       const result = await inner.execute(action);
@@ -75,7 +82,8 @@ async function buildSubBudget(opts: {
   return toPermissionContext([childSigned, rootSigned]);
 }
 
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number): Promise<void> =>
+  new Promise((r) => setTimeout(r, ms));
 
 /** Poll a relayer task to a terminal status; surface the receipt tx hash. */
 async function settle(
@@ -102,6 +110,12 @@ async function hireAndPay(
   spec: WorkerSpec,
   entry: LedgerEntry,
 ): Promise<void> {
+  if (deps.isRevoked?.()) {
+    entry.status = "failed";
+    entry.error = "authority revoked";
+    deps.onUpdate?.();
+    return;
+  }
   const worker = spec.account; // persistent identity → reputation accrues
   entry.agent = worker.account.address;
   entry.status = "hiring";
@@ -114,7 +128,11 @@ async function hireAndPay(
   );
   const authorization = alreadyUp
     ? undefined
-    : await buildUpgradeAuthorization(worker.owner, worker.client, Number(deps.chainId));
+    : await buildUpgradeAuthorization(
+        worker.owner,
+        worker.client,
+        Number(deps.chainId),
+      );
 
   const context = await buildSubBudget({
     principal: deps.principal,
@@ -135,11 +153,15 @@ async function hireAndPay(
   entry.status = "paying";
   deps.onUpdate?.();
   const sink: { taskId?: string } = {};
-  const payer = new DelegatedPayer(recordingExecutor(executor, sink), spec.subCap);
+  const payer = new DelegatedPayer(
+    recordingExecutor(executor, sink),
+    spec.subCap,
+  );
   try {
     const res = await new X402Client(payer).fetch(spec.serviceUrl);
     const body = (await res.json()) as { data?: string };
-    if (res.status !== 200) throw new Error(`x402 service returned ${res.status}`);
+    if (res.status !== 200)
+      throw new Error(`x402 service returned ${res.status}`);
     entry.data = body.data;
   } catch (err) {
     entry.status = "failed";
@@ -165,9 +187,21 @@ async function hireAndPay(
     },
   );
   entry.txHash = hash ?? entry.txHash;
+  if (status === 0) {
+    // Timed out without a terminal status — leave it pending, don't penalize reputation.
+    entry.status = "pending";
+    entry.error = "still pending after the poll window (not a failure)";
+    deps.onUpdate?.();
+    return;
+  }
   entry.status = status === 200 ? "settled" : "failed";
   entry.settled = status === 200;
-  recordReceipt(deps.repStore, worker.account.address, BigInt(spec.payAmount), status === 200);
+  recordReceipt(
+    deps.repStore,
+    worker.account.address,
+    BigInt(spec.payAmount),
+    status === 200,
+  );
   const c = credit(deps.repStore, worker.account.address);
   entry.credit = c.score;
   entry.tier = c.tier;

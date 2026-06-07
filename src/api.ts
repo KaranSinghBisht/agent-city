@@ -186,7 +186,7 @@ export function createApi(deps: ApiDeps): Hono {
     };
     cityRuns.set(run.id, run);
     void runCity(
-      { ...base.deps, onUpdate: () => undefined },
+      { ...base.deps, onUpdate: () => undefined, isRevoked: () => revoked },
       run,
       base.makeSpecs(goal),
     ).catch((err) => {

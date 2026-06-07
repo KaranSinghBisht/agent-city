@@ -95,7 +95,7 @@ textarea#goal:disabled{opacity:.5}
 <script>
 var $=function(s){return document.querySelector(s);};
 var info=null, polling=false, revoked=false;
-function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function shrink(a){return a&&a!=='0x'?String(a).slice(0,6)+'…'+String(a).slice(-4):'—';}
 function fmtUSDC(base){if(base==null||base==='')return '—';var n=Number(base)/1e6;if(isNaN(n))return String(base);
   var s=n.toFixed(4).replace(/0+$/,'').replace(/\\.$/,'');return s+' USDC';}
@@ -120,7 +120,7 @@ async function loadPolicy(){
 }
 var ST={queued:['queued','warn'],hiring:['hiring…','run'],paying:['paying on-chain…','run'],settled:['settled','ok'],failed:['failed','bad']};
 function badge(s){var m=ST[s]||['…','run'];return '<span class="badge '+m[1]+'"><span class="dot '+m[1]+'"></span>'+esc(m[0])+'</span>';}
-function rcpt(run,e){if(!e.txHash)return '';var base=run.explorerTxBase||'';return base?'<a href="'+base+e.txHash+'" target="_blank" rel="noopener">receipt ↗</a>':'<span class="mono">'+esc(shrink(e.txHash))+'</span>';}
+function rcpt(run,e){var h=e.txHash;if(!h||!/^0x[0-9a-fA-F]{64}$/.test(h))return '';var base=run.explorerTxBase||'';return base.slice(0,8)==='https://'?'<a href="'+esc(base+h)+'" target="_blank" rel="noopener">receipt ↗</a>':'<span class="mono">'+esc(h.slice(0,10))+'…</span>';}
 
 function render(run){
   $('#runbadge').innerHTML='<span class="badge '+(run.status==='done'?'ok':run.status==='failed'?'bad':'run')+'">'+esc(run.status)+'</span>';

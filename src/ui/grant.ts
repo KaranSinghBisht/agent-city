@@ -74,7 +74,7 @@ h1{font-size:clamp(28px,4vw,40px);font-weight:800;margin:0 0 12px}
 var $=function(s){return document.querySelector(s);};
 var cfg=null, account=null;
 function show(html, cls){var o=$('#out');o.className='out'+(cls?' '+cls:'');o.innerHTML=html;}
-function esc(s){return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function shrink(a){return a?String(a).slice(0,8)+'…'+String(a).slice(-6):'—';}
 
 async function loadConfig(){
@@ -90,7 +90,7 @@ async function connect(){
     var accts=await window.ethereum.request({method:'eth_requestAccounts'});
     account=accts[0];
     var cid=parseInt(await window.ethereum.request({method:'eth_chainId'}),16);
-    show('Connected '+shrink(account)+' · chain '+cid+(cfg&&cid!=Number(cfg.chainId)?' ⚠️ switch to Base Sepolia ('+cfg.chainId+')':' ✓'));
+    show('Connected '+esc(shrink(account))+' · chain '+cid+(cfg&&cid!=Number(cfg.chainId)?' ⚠️ switch to Base Sepolia ('+esc(cfg.chainId)+')':' ✓'));
     $('#grant').disabled=false;
   }catch(e){show('Connect failed: '+esc(e.message),'bad');}
 }
@@ -100,9 +100,9 @@ async function grant(){
   // erc20-token-periodic: ≤5 USDC per day, granted to the agent (redeemer).
   var periodAmount='0x'+(5n*(10n**6n)).toString(16); // 5 USDC (6 dp), hex quantity
   var expiry=Math.floor(Date.now()/1000)+7*86400;
+  // RPC wire shape per the Kit's permissionRequestToRpc: hex chainId, expiry as a rule.
   var req={
-    chainId:Number(cfg.chainId),
-    expiry:expiry,
+    chainId:'0x'+Number(cfg.chainId).toString(16),
     to:cfg.agent,
     permission:{
       type:'erc20-token-periodic',
@@ -112,7 +112,8 @@ async function grant(){
         periodDuration:86400,
         justification:'Agent City may spend ≤5 USDC/day on your behalf (revocable).'
       }
-    }
+    },
+    rules:[{type:'expiry',data:{timestamp:expiry}}]
   };
   try{
     var granted=await window.ethereum.request({method:'wallet_requestExecutionPermissions',params:[req]});

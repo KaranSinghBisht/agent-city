@@ -3,7 +3,9 @@ import { createSmartAccountFromKey } from "../delegation/smartAccount.js";
 import type { OneShotRelayer } from "../relayer.js";
 import type { ReputationStore } from "./reputation.js";
 
-export type SmartAccount = Awaited<ReturnType<typeof createSmartAccountFromKey>>;
+export type SmartAccount = Awaited<
+  ReturnType<typeof createSmartAccountFromKey>
+>;
 
 /** One worker the Manager hires: a persistent agent + the x402 service + budget. */
 export interface WorkerSpec {
@@ -18,7 +20,13 @@ export interface WorkerSpec {
   reason: string;
 }
 
-export type EntryStatus = "queued" | "hiring" | "paying" | "settled" | "failed";
+export type EntryStatus =
+  | "queued"
+  | "hiring"
+  | "paying"
+  | "settled"
+  | "failed"
+  | "pending";
 
 /** A City Ledger line — a verifiable on-chain receipt of one agent's payment. */
 export interface LedgerEntry {
@@ -59,4 +67,6 @@ export interface CityDeps {
   repStore: ReputationStore; // accrues across runs (server memory)
   /** Called whenever the run mutates, so the API can stream progress to the UI. */
   onUpdate?: () => void;
+  /** If it returns true, the orchestrator stops before the next worker's redemption. */
+  isRevoked?: () => boolean;
 }
