@@ -1,80 +1,262 @@
 /**
- * Onyx design system — shared CSS + font links for the landing (/) and app (/app)
- * pages. Dark, Linear-grade, single violet accent. No build step: these are
- * plain strings inlined into each self-contained page served by the Hono API.
+ * Blueprint Civic design system — shared CSS + font links.
+ *
+ * Aesthetic: engineering drawing brought to life. Deep navy field,
+ * Barlow Condensed for all structural headings, JetBrains Mono for
+ * every number and hash, dimension-line annotations for cap spans.
+ * Signal orange (#E05C1A) for confirmed/settled state.
+ * No purple. No gradients. No blur. No radius > 2px on surfaces.
  */
 
 export const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">`;
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&family=JetBrains+Mono:wght@400;600&display=block" rel="stylesheet">`;
 
 export const THEME_CSS = `
 :root{
-  --bg:#0a0b0f;--bg-2:#0e0f15;--surface:#14161e;--surface-2:#181b24;
-  --line:#23262f;--line-2:#2c3040;
-  --fg:#f4f5f8;--fg-2:#aeb4c4;--fg-3:#767d90;
-  --accent:#8b7cff;--accent-2:#a99bff;--accent-ink:#0b0a1a;--glow:rgba(139,124,255,.35);
-  --ok:#46d07f;--ok-bg:rgba(70,208,127,.12);
-  --warn:#e3b341;--warn-bg:rgba(227,179,65,.12);
-  --bad:#ff6b6b;--bad-bg:rgba(255,107,107,.12);
-  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
-  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  --maxw:1100px;--r:16px;--r-sm:11px;
+  --bg:          #091525;
+  --bg-2:        #0C1C30;
+  --surface:     #0F2540;
+  --surface-2:   #132B4A;
+  --ink:         #C8D8F0;
+  --ink-2:       #7A9BC4;
+  --ink-3:       #3D6080;
+  --dim-line:    #2A5080;
+  --grid:        rgba(80,140,220,0.07);
+  --signal:      #E05C1A;
+  --signal-dim:  rgba(224,92,26,0.15);
+  --ok:          #2DC98A;
+  --ok-dim:      rgba(45,201,138,0.12);
+  --warn:        #D4A820;
+  --warn-dim:    rgba(212,168,32,0.12);
+  --bad:         #D44040;
+  --bad-dim:     rgba(212,64,64,0.12);
+  --display:     "Barlow Condensed","Arial Narrow",sans-serif;
+  --body:        "Barlow","Arial",sans-serif;
+  --mono:        "JetBrains Mono","SFMono-Regular",Menlo,monospace;
+  --maxw:        1100px;
 }
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.6;
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:
-  radial-gradient(58% 44% at 50% -8%,rgba(139,124,255,.20),transparent 70%),
-  radial-gradient(40% 30% at 92% 4%,rgba(139,124,255,.08),transparent 60%)}
+body{
+  margin:0;
+  background:var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 32px),
+    repeating-linear-gradient(90deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 32px);
+  color:var(--ink);
+  font-family:var(--body);font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
 a{color:inherit;text-decoration:none}
 img,svg{display:block}
-h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+h1,h2,h3,h4{margin:0;font-family:var(--display);font-weight:700;line-height:1.1;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
 p{margin:0}
+
 .container{max-width:var(--maxw);margin:0 auto;padding:0 24px}
-.mono{font-family:var(--mono)}
-.muted{color:var(--fg-3)}
-.dim{color:var(--fg-2)}
-.accent{color:var(--accent-2)}
-.eyebrow{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
-.grad{background:linear-gradient(180deg,#fff 30%,#bdb5ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-3)}
+.dim{color:var(--ink-2)}
+.signal-color{color:var(--signal)}
 
-/* buttons */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:12px;
-  border:1px solid var(--line-2);background:var(--surface);color:var(--fg);font:600 15px/1 var(--sans);
-  cursor:pointer;transition:.18s ease;white-space:nowrap;text-align:center}
-.btn:hover{border-color:#3a3f52;background:var(--surface-2);transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn-primary{background:linear-gradient(180deg,var(--accent-2),var(--accent));color:var(--accent-ink);
-  border:0;box-shadow:0 6px 24px -8px var(--glow)}
-.btn-primary:hover{box-shadow:0 12px 32px -8px var(--glow);filter:brightness(1.04)}
-.btn-ghost{background:transparent;border-color:transparent;color:var(--fg-2)}
-.btn-ghost:hover{color:var(--fg);background:var(--surface)}
-.btn-danger{background:transparent;border-color:rgba(255,107,107,.4);color:var(--bad)}
-.btn-danger:hover{background:var(--bad-bg);border-color:var(--bad)}
-.btn-lg{padding:14px 26px;font-size:16px;border-radius:14px}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;filter:none}
+/* Eyebrow — condensed mono annotation */
+.eyebrow{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+}
 
-/* surfaces */
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px}
-.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;border:1px solid var(--line-2);
-  background:var(--bg-2);color:var(--fg-2);font-size:13px;font-weight:500}
-.pill b{color:var(--fg);font-weight:600}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:999px;font-size:12px;font-weight:600}
-.badge.ok{background:var(--ok-bg);color:var(--ok)}
-.badge.warn{background:var(--warn-bg);color:var(--warn)}
-.badge.bad{background:var(--bad-bg);color:var(--bad)}
-.badge.run{background:rgba(139,124,255,.14);color:var(--accent-2)}
+/* ── Dimension-line annotation ── */
+/* Container: position:relative, display:flex, align-items:center */
+/* Usage: <div class="dim-line"><span>LABEL</span></div>           */
+.dim-line{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  margin:10px 0;
+}
+.dim-line::before{
+  content:'';display:block;position:absolute;
+  top:50%;left:0;right:0;border-top:1px solid var(--dim-line);
+}
+.dim-line>span{
+  position:relative;background:var(--bg);padding:0 8px;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.dim-line>span::before{
+  content:'';position:absolute;top:-4px;left:0;
+  width:1px;height:8px;background:var(--dim-line);
+}
+.dim-line>span::after{
+  content:'';position:absolute;top:-4px;right:0;
+  width:1px;height:8px;background:var(--dim-line);
+}
+/* On surfaces that are not --bg, override the span background */
+.surface-dim-line .dim-line>span{background:var(--surface)}
+.surface2-dim-line .dim-line>span{background:var(--surface-2)}
 
-/* status dot */
-.dot{width:8px;height:8px;border-radius:50%;background:var(--fg-3);flex:none}
-.dot.ok,.dot.live{background:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
-.dot.run{background:var(--warn);box-shadow:0 0 0 3px var(--warn-bg);animation:pulse 1.4s ease-in-out infinite}
-.dot.bad{background:var(--bad);box-shadow:0 0 0 3px var(--bad-bg)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* ── Buttons — square-edged blueprint style ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:10px 18px;border-radius:0;border:1px solid var(--dim-line);
+  background:var(--surface);color:var(--ink);
+  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;
+  cursor:pointer;transition:border-color .12s,background .12s,color .12s;
+  white-space:nowrap;text-align:center;
+}
+.btn:hover{border-color:var(--ink-2);background:var(--surface-2);color:var(--ink)}
+.btn:active{background:var(--bg-2)}
+.btn-primary{background:var(--signal);color:#fff;border-color:var(--signal)}
+.btn-primary:hover{background:#c04d12;border-color:#c04d12;color:#fff}
+.btn-signal{background:var(--signal);color:#fff;border-color:var(--signal)}
+.btn-signal:hover{background:#c04d12;border-color:#c04d12}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--dim-line)}
+.btn-danger{background:transparent;border-color:rgba(212,64,64,.35);color:var(--bad)}
+.btn-danger:hover{background:var(--bad-dim);border-color:var(--bad)}
+.btn-lg{padding:13px 26px;font-size:13px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── Surfaces — drawing frames ── */
+.card{
+  background:var(--surface);border:1px solid var(--dim-line);
+  border-radius:0;padding:20px 22px;
+}
+
+/* ── Key-value rows ── */
+.brow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--dim-line);
+}
+.brow:last-child{border-bottom:0}
+.brow .k{color:var(--ink-3);font-size:12px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em}
+.brow .v{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+/* ── Status badges — no pill radius ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:2px 7px;border-radius:0;
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.badge.ok  {background:var(--ok-dim);  color:var(--ok);  border:1px solid rgba(45,201,138,.25)}
+.badge.warn{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(212,168,32,.25)}
+.badge.bad {background:var(--bad-dim); color:var(--bad); border:1px solid rgba(212,64,64,.25)}
+.badge.run {background:rgba(80,140,220,.1);color:#5098DC;border:1px solid rgba(80,140,220,.25)}
+.badge.live{background:var(--ok-dim);  color:var(--ok);  border:1px solid rgba(45,201,138,.25)}
+
+/* ── Pill (network chip) ── */
+.pill{
+  display:inline-flex;align-items:center;gap:6px;padding:3px 9px;
+  border:1px solid var(--dim-line);background:var(--bg-2);
+  font-family:var(--mono);font-size:10px;color:var(--ink-3);border-radius:0;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.pill b{color:var(--ink-2);font-weight:600}
+
+/* ── Status dot ── */
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex:none}
+.dot.ok,.dot.live{background:var(--ok)}
+.dot.run{background:#5098DC;animation:pulse 1.4s ease-in-out infinite}
+.dot.bad{background:var(--bad)}
+.dot.warn{background:var(--warn)}
+
+/* ── Section divider: dimension-line style ── */
+.section-rule{
+  display:flex;align-items:center;gap:14px;margin-bottom:20px;
+}
+.section-rule::before,.section-rule::after{
+  content:'';flex:1;height:1px;background:var(--dim-line);
+}
+.section-rule .sr-title{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);white-space:nowrap;
+}
+
+/* ── Ledger title block (engineering drawing header) ── */
+.ledger-masthead{
+  border-top:2px solid var(--dim-line);
+  padding-top:5px;margin-bottom:16px;
+}
+.ledger-masthead .lm-inner{
+  border-top:1px solid var(--dim-line);padding:8px 0 10px;
+  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
+}
+.ledger-masthead .lm-name{
+  font-family:var(--display);font-size:13px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+}
+.ledger-masthead .lm-vol{
+  font-family:var(--mono);font-size:10px;color:var(--ink-3);
+  letter-spacing:.06em;text-transform:uppercase;
+}
+
+/* ── Double-rule notice box ── */
+.notice-box{
+  border:2px solid var(--dim-line);outline:1px solid var(--dim-line);
+  outline-offset:3px;padding:16px 18px;background:var(--surface);
+}
+.notice-box.danger-notice{
+  border-color:var(--bad);outline-color:var(--bad);
+  background:var(--bad-dim);
+}
+.notice-box.warn-notice{
+  border-color:var(--warn);outline-color:var(--warn);
+  background:var(--warn-dim);
+}
+.notice-box .nb-head{
+  font-family:var(--display);font-size:12px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin-bottom:8px;
+}
+.notice-box.danger-notice .nb-head{color:var(--bad)}
+.notice-box.warn-notice .nb-head{color:var(--warn)}
+
+/* ── SETTLED stamp ── */
+.stamp-settled{
+  display:inline-block;
+  transform:rotate(-18deg);
+  border:2px solid var(--signal);
+  outline:2px solid var(--signal);
+  outline-offset:3px;
+  padding:2px 8px;
+  font-family:var(--display);font-weight:700;font-size:11px;
+  letter-spacing:.18em;color:var(--signal);
+  text-transform:uppercase;
+  overflow:hidden;
+}
+.stamp-approved{
+  display:inline-block;
+  transform:rotate(-12deg);
+  border:2px solid var(--ok);
+  outline:2px solid var(--ok);
+  outline-offset:3px;
+  padding:2px 10px;
+  font-family:var(--display);font-weight:700;font-size:14px;
+  letter-spacing:.18em;color:var(--ok);
+  text-transform:uppercase;
+}
+.stamp-rejected{
+  display:inline-block;
+  transform:rotate(-12deg);
+  border:2px solid var(--bad);
+  outline:2px solid var(--bad);
+  outline-offset:3px;
+  padding:2px 10px;
+  font-family:var(--display);font-weight:700;font-size:14px;
+  letter-spacing:.18em;color:var(--bad);
+  text-transform:uppercase;
+}
+
+/* ── Receipt link ── */
+.rcpt{font-size:12.5px;font-weight:600;color:var(--signal);font-family:var(--mono)}
+.rcpt:hover{color:var(--ink)}
+
+/* ── Animations ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes spin-stroke{to{stroke-dashoffset:0}}
 
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-::selection{background:rgba(139,124,255,.3);color:#fff}
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+::selection{background:rgba(224,92,26,.22);color:var(--ink)}
 `;
