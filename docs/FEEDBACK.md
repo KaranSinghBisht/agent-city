@@ -1,6 +1,6 @@
 # Developer feedback — MetaMask Smart Accounts × 1Shot × Venice
 
-Grounded feedback from building **Steward** end-to-end and redeeming real delegations on **Base Sepolia
+Grounded feedback from building **Agent City** end-to-end and redeeming real delegations on **Base Sepolia
 and Base mainnet** (not a mock). Each point below cost real debugging time, so each is a concrete fix.
 
 ---
