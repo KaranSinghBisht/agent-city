@@ -64,7 +64,7 @@ textarea#goal:disabled{opacity:.5}
   <button class="btn btn-danger" id="revoke">Revoke the city</button>
 </div></nav>
 
-<div class="container" style="padding-top:18px"><a href="/grant" class="btn btn-primary" style="width:100%;justify-content:center">① Grant the city's budget with MetaMask — Advanced Permissions (ERC-7715) →</a></div>
+<div class="container" style="padding-top:18px"><a href="/grant" class="btn btn-primary" id="grantcta" style="width:100%;justify-content:center">① Grant the city's budget with MetaMask — Advanced Permissions (ERC-7715) →</a></div>
 
 <main class="container app-grid">
   <aside class="panel">
@@ -73,6 +73,7 @@ textarea#goal:disabled{opacity:.5}
       <div class="brow"><span class="k">Treasury</span><span class="v" id="m-treasury">…</span></div>
       <div class="brow"><span class="k">Master budget</span><span class="v cap" id="m-budget" style="color:var(--accent-2)">…</span></div>
       <div class="brow"><span class="k">Per-agent cap</span><span class="v" id="m-percap">…</span></div>
+      <div class="brow"><span class="k">Budget root</span><span class="v" id="m-root">demo treasury</span></div>
       <div class="brow"><span class="k">Authority</span><span id="m-status">…</span></div>
     </div>
     <div class="card">
@@ -110,6 +111,16 @@ async function loadInfo(){
   if(!live){$('#dispatch').disabled=true;$('#goal').disabled=true;
     $('#out').innerHTML='<div class="summary bad"><span class="dot bad"></span>Live mode required for the city demo. Start the server with .env creds.</div>';}
 }
+async function loadGrant(){
+  var g=null;
+  try{g=await (await fetch('/city/grant')).json();}catch(e){g=null;}
+  if(g&&g.active){
+    $('#grantcta').textContent='ERC-7715 grant active — the city pays under '+shrink(g.delegator)+' (tap to re-grant)';
+    $('#m-root').innerHTML='<span class="badge ok"><span class="dot ok"></span>ERC-7715 grant '+esc(shrink(g.delegator))+'</span>';
+  }else{
+    $('#m-root').textContent='demo treasury';
+  }
+}
 async function loadPolicy(){
   var p=await (await fetch('/policy')).json();
   $('#m-budget').textContent=fmtUSDC(p.maxPerDay);
@@ -125,14 +136,17 @@ function rcpt(run,e){var h=e.txHash;if(!h||!/^0x[0-9a-fA-F]{64}$/.test(h))return
 function render(run){
   $('#runbadge').innerHTML='<span class="badge '+(run.status==='done'?'ok':run.status==='failed'?'bad':'run')+'">'+esc(run.status)+'</span>';
   var h='<div class="agents">';
-  h+='<div class="acard mayor"><div class="ar"><span class="role">Mayor</span><span class="badge run">root</span></div>'+
-     '<div class="svc">grants capped budgets</div><div class="meta"><span>'+esc(shrink(info&&info.treasury))+'</span><span class="cap">master ≤ '+esc($('#m-budget').textContent||'')+'</span></div></div>';
+  var isGrant=run.authorityRoot==='grant';
+  h+='<div class="acard mayor"><div class="ar"><span class="role">Mayor</span><span class="badge '+(isGrant?'ok':'run')+'">'+(isGrant?'root · 7715 grant':'root · treasury')+'</span></div>'+
+     '<div class="svc">'+(isGrant?'your wallet funds the city':'grants capped budgets')+'</div>'+
+     '<div class="meta"><span>'+esc(shrink(isGrant&&run.grantDelegator?run.grantDelegator:(info&&info.treasury)))+'</span><span class="cap">master ≤ '+esc($('#m-budget').textContent||'')+'</span></div></div>';
   for(var i=0;i<run.ledger.length;i++){var e=run.ledger[i];
     h+='<div class="acard"><div class="ar"><span class="role">'+esc(e.role)+'</span>'+badge(e.status)+'</div>'+
        '<div class="svc">pays '+esc(e.service||'a service')+'</div>'+
        '<div class="meta"><span>'+esc(shrink(e.agent))+'</span>'+
        '<span class="cap">budget '+esc(fmtUSDC(e.masterCap))+' → '+esc(fmtUSDC(e.subCap))+'</span>'+
        '<span>pays '+esc(fmtUSDC(e.amount))+'</span></div>'+
+       (e.reasoning?'<div class="meta" style="margin-top:4px"><span style="font-style:italic;color:var(--fg-2)">🧠 '+esc(e.reasoning)+'</span></div>':'')+
        (e.credit!=null?'<div class="meta" style="margin-top:4px"><span class="cap">credit '+esc(e.credit)+' · '+esc(e.tier||'')+'</span></div>':'')+
        (e.data?'<div class="meta" style="margin-top:4px"><span>received: '+esc(e.data)+'</span></div>':'')+
        (e.txHash?'<div>'+rcpt(run,e)+'</div>':'')+'</div>';}
@@ -184,6 +198,6 @@ async function dispatch(){
 }
 $('#dispatch').onclick=showApprove;
 $('#revoke').onclick=async function(){if(!confirm('Revoke the whole city\\'s authority?'))return;await fetch('/revoke',{method:'POST'});loadPolicy();};
-loadInfo();loadPolicy();
+loadInfo();loadPolicy();loadGrant();
 </script>
 </body></html>`;

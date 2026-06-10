@@ -19,6 +19,7 @@ The hard parts are redeemed on **Base** (testnet **and** mainnet). Reproduce wit
 | **Agents hire agents** — Manager → worker capped sub-budgets (A2A redelegation) | Best A2A | Base Sepolia tx [`0x24af…ae27`](https://sepolia.basescan.org/tx/0x24af8650b5690755e4dfad5d16947c06d753257348872c9bd73bbad8d6b2ae27) — 6 `RedeemedDelegation` events, root + narrower child caps |
 | **Agents pay agents** — x402 pay-per-call settled as an ERC-7710 redemption | Best x402 + ERC-7710 | Base Sepolia tx [`0xbbce…450b`](https://sepolia.basescan.org/tx/0xbbcecb7cbe662462794cf5cee1c7dcbf3eba22b9669e902f5b8bfb3b1272450b) — service received 0.05 USDC |
 | **Gasless settlement** — every spend redeems via 1Shot, gas in USDC, EIP-7702 | Best 1Shot | **Base mainnet** tx [`0x0349…448bf`](https://basescan.org/tx/0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf) + Base Sepolia gate |
+| **Spend under an ERC-7715 grant** — periodic granted context, decoded + redeemed | Best Agent / qualification | Base Sepolia tx [`0xaa84…197b`](https://sepolia.basescan.org/tx/0xaa84871ebefcd49d61fa091c3ac9e77a5037e632ee588c3cacc38a42127c197b) — `erc20-token-periodic` enforcer accepted the spend |
 | **Private reasoning + on-chain reads** via Venice | Best Venice | `npm run demo` — GLM-4.7 (zero-retention) + Venice Crypto-RPC balance read |
 | **Bounded autonomous agent** — reason → propose → act under a hard cap, HITL | Best Agent | `src/agent/planner.ts` + the live City flow |
 
@@ -47,26 +48,33 @@ Full component breakdown: **[docs/architecture.md](./docs/architecture.md)**.
 - **What qualifies today (main flow):** the city redeems **MetaMask Smart Account** delegations
   (`Implementation.Stateless7702`, ERC-7710) on every spend — the budget, the A2A sub-budgets, and the
   x402 payments are all scoped MetaMask delegations enforced on-chain. Built with `@metamask/smart-accounts-kit`.
-- **Advanced Permissions (ERC-7715):** a real grant **front door** is implemented at **`/grant`**
-  (`wallet_requestExecutionPermissions`, `erc20-token-periodic`) — the Mayor grants the agent a periodic
-  USDC budget from MetaMask. ⚠️ **In progress:** redeeming *under that granted permission* (via the
-  DelegationManager / a bundler, or bridged to 1Shot) is being wired and tested against MetaMask Flask;
-  until verified end-to-end, the production flow above uses Smart Account delegations. We do **not** claim
-  a working 7715 redemption yet.
+- **Advanced Permissions (ERC-7715) — wired end-to-end:** the Mayor grants the agent a periodic USDC
+  budget at **`/grant`** (`wallet_requestExecutionPermissions`, `erc20-token-periodic`). The returned
+  hex **context is validated + decoded** (`src/delegation/grantBridge.ts`, Kit `decodeDelegations`) and
+  **every city payment then chains UNDER the grant**: `your wallet →(periodic grant)→ manager →(masterCap)→
+  worker →(subCap)→ relayer` — so the city spends the granting wallet's funds, bounded by the on-chain
+  periodic enforcer. **Redemption-under-grant is proven on-chain**: `npm run prove:grant` redeems beneath a
+  granted context in MetaMask's exact wire format (same scope, same `encodeDelegations` encoding) — Base
+  Sepolia tx [`0xaa84…197b`](https://sepolia.basescan.org/tx/0xaa84871ebefcd49d61fa091c3ac9e77a5037e632ee588c3cacc38a42127c197b).
+  ⚠️ Honest residual: that proof signs the grant with a local key; the **interactive Flask popup** produces
+  the same context shape and flows through the same `parseGrant` boundary, but we have not yet run the
+  popup itself end-to-end (Flask-only). `npm run grant:dev` exercises the grant-active flow without Flask.
 
 ## Run it
 
 ```bash
 npm install
-npm test            # 41 passing
+npm test            # 45 passing
 npm run typecheck   # tsc --noEmit (clean)
 
 # Live (needs .env — see below), all real on Base Sepolia:
 npm run city        # Agent City: Manager hires workers, each buys an x402 service, settles on-chain
 npm run dev         # web app: http://localhost:8787  (landing /, City /app, grant /grant)
+npm run grant:dev   # post a synthetic ERC-7715 grant to the dev server (demo the grant flow sans Flask)
 npm run prove       # minimal de-risk: one delegation redeemed via 1Shot
 npm run prove:a2a   # A2A: a 2-link redelegation chain redeemed on-chain
 npm run prove:x402  # x402: a 402 pay-per-call settled on-chain as a 7710 redemption
+npm run prove:grant # ERC-7715 bridge: redeem UNDER a granted periodic context (MetaMask wire format)
 npm run demo        # the single-agent loop (Venice → policy → approval → 1Shot)
 ```
 

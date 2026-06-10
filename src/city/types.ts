@@ -1,4 +1,5 @@
 /** Agent City shared types. The ledger is a list of on-chain payment receipts. */
+import type { SignedDelegation } from "../delegation/redeem.js";
 import { createSmartAccountFromKey } from "../delegation/smartAccount.js";
 import type { OneShotRelayer } from "../relayer.js";
 import type { ReputationStore } from "./reputation.js";
@@ -42,6 +43,7 @@ export interface LedgerEntry {
   taskId?: string;
   txHash?: string;
   data?: string; // the resource the agent received from the x402 service
+  reasoning?: string; // the agent's Venice-reasoned purchase decision
   credit?: number; // earned credit score after this receipt
   tier?: string;
   error?: string;
@@ -55,6 +57,10 @@ export interface CityRun {
   result?: string;
   network?: string;
   explorerTxBase?: string;
+  /** Whose authority roots the payments: a browser ERC-7715 grant or the demo treasury. */
+  authorityRoot?: "grant" | "treasury";
+  /** The wallet that granted, when authorityRoot is "grant". */
+  grantDelegator?: string;
 }
 
 export interface CityDeps {
@@ -69,4 +75,16 @@ export interface CityDeps {
   onUpdate?: () => void;
   /** If it returns true, the orchestrator stops before the next worker's redemption. */
   isRevoked?: () => boolean;
+  /**
+   * A browser-granted ERC-7715 delegation chain (leaf delegate = the principal).
+   * When present, every worker's sub-budget chains UNDER it, so payments redeem
+   * against the granting wallet instead of the demo treasury.
+   */
+  grantChain?: SignedDelegation[];
+  /** Venice-powered purchase reasoning; optional enrichment, never load-bearing. */
+  reason?: (q: {
+    goal: string;
+    role: string;
+    service: string;
+  }) => Promise<string>;
 }

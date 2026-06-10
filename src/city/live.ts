@@ -15,9 +15,34 @@ import {
   isUpgraded,
 } from "../delegation/smartAccount.js";
 import { OneShotRelayer } from "../relayer.js";
+import { VeniceReasoner } from "../venice.js";
 import { credit, type ReputationStore } from "./reputation.js";
 import { startCityServices } from "./services.js";
 import type { CityDeps, SmartAccount, WorkerSpec } from "./types.js";
+
+/**
+ * Each worker reasons over its purchase with Venice (private model) before it
+ * pays. One short sentence; the orchestrator treats failures as non-fatal.
+ */
+export function buildCityReasoner(): CityDeps["reason"] {
+  const venice = new VeniceReasoner();
+  return async (q) =>
+    venice.complete([
+      {
+        role: "system",
+        content:
+          "You are a worker agent in Agent City with a capped USDC budget. " +
+          "In ONE sentence (max 25 words), say what you will buy from the " +
+          "service and why it serves the goal. No preamble, no quotes.",
+      },
+      {
+        role: "user",
+        content:
+          `Goal: ${q.goal.slice(0, 400)}\nYour role: ${q.role.slice(0, 80)}\n` +
+          `Service on offer: ${q.service.slice(0, 80)}`,
+      },
+    ]);
+}
 
 export interface CityBase {
   deps: Omit<CityDeps, "onUpdate">;
@@ -97,6 +122,7 @@ export async function createCityBase(): Promise<CityBase> {
       decimals: dp,
       principal,
       repStore,
+      reason: buildCityReasoner(),
     },
     network: config.chainName,
     explorerTxBase: isTestnet

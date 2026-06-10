@@ -16,7 +16,7 @@ flowchart TD
 
   EX -->|"estimate7710 → send7710<br/>(fee transfer + work transfer)"| R["1Shot permissionless relayer"]
   R -->|"redeemDelegations<br/>gas in USDC · EIP-7702 upgrade"| CH["Base (on-chain) ✅"]
-  R -.->|"getStatus polling 110 → 200<br/>(Ed25519 webhook verifier built + tested, not wired)"| AG
+  R -->|"getStatus polling 110 → 200<br/>(how the demo reads status)"| AG
 
   U -.->|"revoke all authority anytime"| AG
 ```
@@ -35,7 +35,9 @@ flowchart TD
 | `src/delegation/redelegate.ts` | A2A: manager → worker capped sub-budgets (nested caps via `parentDelegation`). |
 | `src/delegation/executor.ts` | The redemption flow: capabilities → estimate (mock fee) → re-sign if needed → send. Path-agnostic via a `ContextResolver`. |
 | `src/relayer.ts` | 1Shot relayer JSON-RPC client (`getCapabilities`/`getFeeData`/`estimate7710`/`send7710`/`getStatus`). |
-| `src/webhook.ts` | Relayer webhook receiver — verifies Ed25519 signatures against the relayer JWKS (push status, not polling). |
+| `src/webhook.ts` | Relayer webhook receiver — verifies Ed25519 signatures against the relayer JWKS. Built + unit-tested, NOT wired into the live flow (the demo polls `getStatus`). |
+| `src/delegation/grantBridge.ts` | ERC-7715 bridge: validates + decodes a browser-granted permission context (Kit `decodeDelegations`); city payments then chain under the grant. |
+| `src/city/` | Agent City: orchestrator (A2A sub-budgets → x402 purchases → on-chain receipts), service market, reputation, live wiring. |
 | `src/x402/` | x402 pay-per-call settled as a budgeted 7710 redemption (reuses the Executor). |
 | `src/live.ts` | Live composition root: wires brain + hands + on-chain context. Used by `npm run demo` and the web server. |
 | `src/api.ts` · `src/ui.ts` | Hono API + the self-contained demo dashboard. |

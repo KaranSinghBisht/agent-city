@@ -18,6 +18,7 @@ import { randomUUID } from "node:crypto";
 import { runCity } from "./city/orchestrator.js";
 import type { CityBase } from "./city/live.js";
 import type { CityRun } from "./city/types.js";
+import { parseGrant, type ParsedGrant } from "./delegation/grantBridge.js";
 
 export interface DemoInfo {
   mode: "live" | "dry-run";
@@ -157,6 +158,8 @@ export function createApi(deps: ApiDeps): Hono {
 
   const cityRuns = new Map<string, CityRun>();
   let cityBasePromise: Promise<CityBase> | null = null;
+  /** The validated browser ERC-7715 grant; city runs chain under it when set. */
+  let activeGrant: ParsedGrant | null = null;
 
   app.post("/city/run", async (c) => {
     if (revoked) return c.json({ error: "authority has been revoked" }, 403);
@@ -176,6 +179,8 @@ export function createApi(deps: ApiDeps): Hono {
       cityBasePromise = null;
       return c.json({ error: (err as Error).message }, 503);
     }
+    // Snapshot: a concurrent re-grant must not affect a run already dispatched.
+    const grant = activeGrant;
     const run: CityRun = {
       id: randomUUID(),
       goal,
@@ -183,10 +188,17 @@ export function createApi(deps: ApiDeps): Hono {
       ledger: [],
       network: base.network,
       explorerTxBase: base.explorerTxBase,
+      authorityRoot: grant ? "grant" : "treasury",
+      grantDelegator: grant?.delegator,
     };
     cityRuns.set(run.id, run);
     void runCity(
-      { ...base.deps, onUpdate: () => undefined, isRevoked: () => revoked },
+      {
+        ...base.deps,
+        grantChain: grant?.chain,
+        onUpdate: () => undefined,
+        isRevoked: () => revoked,
+      },
       run,
       base.makeSpecs(goal),
     ).catch((err) => {
@@ -202,8 +214,6 @@ export function createApi(deps: ApiDeps): Hono {
     return c.json(run);
   });
 
-  // ERC-7715 Advanced Permissions front door (browser grant via MetaMask Flask).
-  let lastGrant: unknown = null;
   app.get("/grant", (c) => c.html(GRANT_HTML));
   app.get("/city/config", async (c) => {
     const factory = deps.cityFactory;
@@ -223,11 +233,44 @@ export function createApi(deps: ApiDeps): Hono {
       return c.json({ error: (err as Error).message }, 503);
     }
   });
+  // ERC-7715 Advanced Permissions front door: the /grant page POSTs MetaMask's
+  // response here. It is validated + decoded at this boundary; once accepted,
+  // every subsequent /city/run chains the workers' budgets under the grant.
   app.post("/city/grant", async (c) => {
-    lastGrant = await c.req.json().catch(() => null);
-    return c.json({ ok: Boolean(lastGrant) });
+    const body = await c.req.json().catch(() => null);
+    if (body === null) {
+      // Malformed JSON must not clear a previously accepted grant.
+      return c.json({ ok: false, error: "invalid JSON body" }, 400);
+    }
+    const factory = deps.cityFactory;
+    if (!factory)
+      return c.json({ ok: false, error: "live mode required for grants" }, 503);
+    try {
+      cityBasePromise ??= factory();
+      const base = await cityBasePromise;
+      activeGrant = parseGrant(body, base.deps.principal.account.address);
+      return c.json({
+        ok: true,
+        delegator: activeGrant.delegator,
+        links: activeGrant.chain.length,
+      });
+    } catch (err) {
+      activeGrant = null;
+      return c.json({ ok: false, error: (err as Error).message }, 400);
+    }
   });
-  app.get("/city/grant", (c) => c.json({ grant: lastGrant }));
+  // Summary only — never echo browser-supplied JSON back out.
+  app.get("/city/grant", (c) =>
+    c.json(
+      activeGrant
+        ? {
+            active: true,
+            delegator: activeGrant.delegator,
+            links: activeGrant.chain.length,
+          }
+        : { active: false },
+    ),
+  );
 
   return app;
 }

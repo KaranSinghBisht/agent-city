@@ -49,7 +49,11 @@ function recordingExecutor(
   };
 }
 
-/** Sign the 2-link chain principal →(masterCap)→ worker →(subCap)→ relayer. */
+/**
+ * Sign the chain principal →(masterCap)→ worker →(subCap)→ relayer. When a
+ * browser ERC-7715 grant is present, the principal's link chains UNDER it, so
+ * the full chain roots at the granting wallet: user → principal → worker → relayer.
+ */
 async function buildSubBudget(opts: {
   principal: SmartAccount;
   worker: SmartAccount;
@@ -57,15 +61,26 @@ async function buildSubBudget(opts: {
   targetAddress: `0x${string}`;
   masterCap: bigint;
   subCap: bigint;
+  grantChain?: SignedDelegation[];
 }): Promise<unknown[]> {
   const { principal, worker, token, targetAddress, masterCap, subCap } = opts;
-  const root = buildBudgetDelegation({
-    environment: principal.account.environment,
-    from: principal.account.address,
-    to: worker.account.address,
-    token,
-    maxAmount: masterCap,
-  });
+  const grantLeaf = opts.grantChain?.[0];
+  const root = grantLeaf
+    ? buildRedelegation({
+        environment: principal.account.environment,
+        manager: principal.account.address,
+        worker: worker.account.address,
+        token,
+        maxAmount: masterCap,
+        parent: grantLeaf,
+      })
+    : buildBudgetDelegation({
+        environment: principal.account.environment,
+        from: principal.account.address,
+        to: worker.account.address,
+        token,
+        maxAmount: masterCap,
+      });
   const rootSig = await principal.account.signDelegation({ delegation: root });
   const rootSigned = { ...root, signature: rootSig } as SignedDelegation;
 
@@ -79,7 +94,11 @@ async function buildSubBudget(opts: {
   });
   const childSig = await worker.account.signDelegation({ delegation: child });
   const childSigned = { ...child, signature: childSig } as SignedDelegation;
-  return toPermissionContext([childSigned, rootSigned]);
+  return toPermissionContext([
+    childSigned,
+    rootSigned,
+    ...(opts.grantChain ?? []),
+  ]);
 }
 
 const sleep = (ms: number): Promise<void> =>
@@ -109,6 +128,7 @@ async function hireAndPay(
   deps: CityDeps,
   spec: WorkerSpec,
   entry: LedgerEntry,
+  goal: string,
 ): Promise<void> {
   if (deps.isRevoked?.()) {
     entry.status = "failed";
@@ -120,6 +140,20 @@ async function hireAndPay(
   entry.agent = worker.account.address;
   entry.status = "hiring";
   deps.onUpdate?.();
+
+  if (deps.reason) {
+    try {
+      const why = await deps.reason({
+        goal,
+        role: spec.role,
+        service: spec.service,
+      });
+      entry.reasoning = why.trim().slice(0, 280);
+      deps.onUpdate?.();
+    } catch {
+      // Reasoning is enrichment — a Venice outage must never block the payment.
+    }
+  }
 
   const alreadyUp = await isUpgraded(
     worker.client,
@@ -141,6 +175,7 @@ async function hireAndPay(
     targetAddress: deps.targetAddress,
     masterCap: spec.masterCap,
     subCap: spec.subCap,
+    grantChain: deps.grantChain,
   });
   const executor = new DelegatedExecutor({
     relayer: deps.relayer,
@@ -196,6 +231,8 @@ async function hireAndPay(
   }
   entry.status = status === 200 ? "settled" : "failed";
   entry.settled = status === 200;
+  // Credit the agreed x402 price once the relayer reports on-chain settlement.
+  // (The amount credited is the quoted price, not re-derived from the receipt.)
   recordReceipt(
     deps.repStore,
     worker.account.address,
@@ -230,7 +267,7 @@ export async function runCity(
     run.ledger.push(entry);
     deps.onUpdate?.();
     try {
-      await hireAndPay(deps, spec, entry);
+      await hireAndPay(deps, spec, entry, run.goal);
     } catch (err) {
       entry.status = "failed";
       entry.error = (err as Error).message;

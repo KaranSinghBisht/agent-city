@@ -1,8 +1,9 @@
 /**
- * Agent reputation derived from on-chain receipts. Credit is EARNED by verifiable
- * behaviour (count + the quoted price of settled receipts) — earned, not asserted.
- * ERC-8004-flavoured: a portable on-chain credit score for agents. Kept in memory
- * for the demo (resets on restart); the inputs are the same on-chain receipts.
+ * Agent reputation earned from settled payments. Credit accrues ONLY when the
+ * relayer reports a payment settled on-chain (a City Ledger receipt); the amount
+ * credited is the agreed x402 price of that payment — it is not re-read from the
+ * chain. ERC-8004-flavoured: behaviour-earned, not asserted. Kept in memory for
+ * the demo (resets on restart).
  */
 export interface RepStats {
   runs: number;
@@ -34,7 +35,7 @@ export interface Credit {
   paid: number;
 }
 
-/** Credit from history: 15 per settled payment + a small volume bonus, capped. */
+/** Credit from history: 25 per settled payment + a small volume bonus, capped at 100. */
 export function credit(store: ReputationStore, address: string): Credit {
   const s = store.get(address.toLowerCase()) ?? {
     runs: 0,

@@ -12,6 +12,8 @@
     "prove": "tsx scripts/prove-delegation.ts",
     "prove:a2a": "tsx scripts/prove-redelegation.ts",
     "prove:x402": "tsx scripts/prove-x402.ts",
+    "prove:grant": "tsx scripts/prove-grant.ts",
+    "grant:dev": "tsx scripts/dev-grant.ts",
     "demo": "tsx scripts/demo-live.ts",
     "city": "tsx scripts/run-city.ts"
   },

@@ -66,7 +66,7 @@ h1{font-size:clamp(28px,4vw,40px);font-weight:800;margin:0 0 12px}
   <ol class="steps">
     <li>Connect your MetaMask Flask wallet (Base Sepolia).</li>
     <li>Approve the <b>erc20-token-periodic</b> permission in the popup.</li>
-    <li>The granted permission flows to the agent — then run the city at <a href="/app" style="color:var(--accent-2)">/app</a>.</li>
+    <li>The agent validates &amp; decodes the granted context — every city payment then chains under your grant. Run the city at <a href="/app" style="color:var(--accent-2)">/app</a>.</li>
   </ol>
 </div>
 
@@ -117,8 +117,10 @@ async function grant(){
   };
   try{
     var granted=await window.ethereum.request({method:'wallet_requestExecutionPermissions',params:[req]});
-    await fetch('/city/grant',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({granted:granted,account:account})});
-    show('✅ Permission granted &amp; sent to the agent.\\n\\n'+esc(JSON.stringify(granted,null,2)),'ok');
+    var r=await fetch('/city/grant',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({granted:granted,account:account})});
+    var v=await r.json();
+    if(!r.ok||!v.ok){show('Granted in MetaMask, but the agent REJECTED it: '+esc(v.error||('HTTP '+r.status)),'bad');$('#grant').disabled=false;return;}
+    show('✅ Permission granted — validated &amp; decoded by the agent ('+esc(v.links)+'-link chain, delegator '+esc(shrink(v.delegator))+').\\n\\nEvery city payment now chains under YOUR grant. Open <a href="/app" style="color:var(--accent-2)">/app</a> and dispatch.\\n\\n'+esc(JSON.stringify(granted,null,2)),'ok');
   }catch(e){
     show('Grant failed: '+esc(e.message||e)+'\\n\\nIf this is a param/encoding error, copy it here — the request shape may need a tweak for your wallet version.','bad');
     $('#grant').disabled=false;

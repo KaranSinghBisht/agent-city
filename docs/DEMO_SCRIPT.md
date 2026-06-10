@@ -21,19 +21,23 @@ them can overspend, because every budget is a MetaMask delegation enforced on-ch
 **Show:** click **① Grant the city's budget** → **Connect MetaMask** → **Grant permission**. The MetaMask
 (Flask) **Advanced Permissions** popup appears: *erc20-token-periodic, ≤5 USDC/day to the agent*. Approve it.
 **Say:** "I grant the city a budget straight from my wallet — a real MetaMask Advanced Permission, scoped
-to 5 USDC a day. I share no keys, and I can revoke it anytime."
-> If the 7715 grant isn't wired to redemption yet at record time: still show the popup + the granted
-> permission, then say "the agents act under this MetaMask delegation" and continue — the on-chain
-> redemptions in Scene 4 are the proof the delegation is real.
+to 5 USDC a day. The agent validates and decodes the granted context, and every city payment chains
+under MY grant. I share no keys, and I can revoke it anytime."
+> Flask fallback: if the popup misbehaves on camera, run `npm run grant:dev` instead — it posts a
+> synthetic grant in the same wire format through the same validation path, and `/app` will show
+> **Budget root: ERC-7715 grant**. Redemption-under-grant is proven on-chain either way
+> (`npm run prove:grant`, tx `0xaa84…197b`).
 
 ### Scene 3 — Enter the city (0:55–1:15) · `/app`
-**Show:** the Mayor panel (master budget, per-agent cap), then **Dispatch the city → Approve & dispatch**.
-**Say:** "The Manager hires specialists and hands each a *narrower* sub-budget — agent-to-agent delegation.
-A worker can never exceed what it was given."
+**Show:** the Mayor panel — point at **Budget root: ERC-7715 grant 0x…** (your grant is live), then
+**Dispatch the city → Approve & dispatch**.
+**Say:** "The city now runs on MY granted budget. The Manager hires specialists and hands each a *narrower*
+sub-budget — agent-to-agent delegation. A worker can never exceed what it was given."
 
 ### Scene 4 — The city works, on-chain (1:15–2:20)
-**Show:** agent cards fill in — Research + Analyst hired, each **paying an x402 service**, the **City Ledger**
-streaming **paying → settled** with a **receipt ↗** link. Click one → the **Basescan** transaction.
+**Show:** agent cards fill in — Research + Analyst hired, each with a 🧠 **Venice reasoning** line ("I'll buy
+ETH price data because…"), each **paying an x402 service**, the **City Ledger** streaming
+**paying → settled** with a **receipt ↗** link. Click one → the **Basescan** transaction.
 **Say:** "Each agent hits a real pay-per-call service over x402 and settles the price on-chain through the
 1Shot relayer — gas paid in USDC, no ETH. Here's the actual transaction. Every payment is a verifiable
 on-chain receipt." Point to the **credit** score on a card: "and each agent earns on-chain credit that
@@ -57,7 +61,8 @@ private Venice reasoning, gasless 1Shot settlement, all proven on-chain. The del
 - [ ] ≤ 3:00
 
 ## Bonus B-roll (terminal, proves it without the UI)
-- `npm run city` → "2/2 agents paid via x402 · settled on-chain" + tx hashes
+- `npm run city` → "2/2 agents paid via x402 · settled on-chain" + 🧠 Venice reasoning + tx hashes
+- `npm run prove:grant` → redeem **under a granted ERC-7715 periodic context**, tx `0xaa84…197b`
 - `npm run prove:a2a` → A2A chain, status 200, tx `0x24af…ae27`
 - `npm run prove:x402` → 402 → paid → 200, tx `0xbbce…450b`
 - `CHAIN=base npm run prove` → the **mainnet** 1Shot redemption, tx `0x0349…448bf`
