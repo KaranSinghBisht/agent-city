@@ -1,72 +1,67 @@
 # Agent City — ≤3-minute demo video script
 
-**Goal:** show MetaMask delegation **in the main flow** (the qualification hard gate), the Agent City economy
-(A2A redelegation + x402), and **Venice privately gating every on-chain spend** — all settling on-chain via 1Shot.
-**Setup:** `npm run dev` (http://localhost:8787) + a Basescan tab. Stage a grant first: `npm run grant:dev`. Keep it ≤ 3:00.
-**Tag** @MetaMaskDev, #DevCookOff.
+**Thesis to sell:** a **spending firewall for AI agents** — *two locks* on every payment: a **private Venice
+gate** that says *whether*, and a **MetaMask on-chain cap** that says *how much*. Neither trusted; both enforced.
+**The "oh damn" is a moment of NEGATION the judge watches live — the agent trying to spend and being physically
+stopped.** Don't show a city working; show a firewall refusing.
 
-> Qualification reminder: the video MUST visibly show the MetaMask Smart Accounts Kit in the main flow.
-> Agent City satisfies this because every spend is a MetaMask Smart Account delegation **redeemed on-chain**
-> (show the Basescan receipt). The `/grant` Advanced Permissions popup is the strongest on-camera "MetaMask" moment.
+**Setup:** `npm run dev` (http://localhost:8787/app) + a Basescan tab. Stage a grant: `npm run grant:dev`.
+Do all takes in ONE server session (City Hall stats + reputation reset on restart). Confirm the 1Shot relayer
+is up right before recording. Keep it ≤ 2:30. **Tag** @MetaMaskDev, #DevCookOff.
 
-## What each beat is for (we aim to be best **in a track**, not to "hit all")
-- **Best A2A Coordination** (primary) → Scene 3–4: Manager redelegates a *narrower* sub-budget to each worker.
-- **Best x402 + ERC-7710** → Scene 4: each worker pays a real 402 service, settled as a 7710 redemption.
-- **Best use of Venice AI** → Scene 4: the **spend-gate** — private Venice judgment *gates* the on-chain action.
-- **Best 1Shot Relayer** → Scene 4: gasless settle on Base + the **Ed25519/JWKS webhook** as the status source.
-- **Best Agent** → the whole loop runs under a hard cap with a human approval + private policy gate.
+> Qualification: the video MUST show the MetaMask Smart Accounts Kit in the MAIN FLOW. Satisfied because every
+> spend is a MetaMask Smart Account delegation **redeemed on-chain** (show the Basescan receipt). The `/grant`
+> Advanced Permissions popup is the strongest on-camera "MetaMask" moment.
 
----
-
-### Scene 1 — Hook (0:00–0:18) · landing `/`
-**Show:** the landing — the delegation tree **draws itself**, then the **blueprint city skyline** (signal-orange 7715 treasury tower).
-**Say:** "Agent City — an economy of AI agents that hire and pay each other. None of them can overspend, because
-every budget is a MetaMask delegation enforced on-chain — not a promise."
-
-### Scene 2 — Grant a permission with MetaMask (0:18–0:52) · `/grant`
-**Show:** click the **ERC-7715 grant bar** → **Connect MetaMask** → **Grant permission**. The MetaMask (Flask)
-**Advanced Permissions** popup appears: *erc20-token-periodic, ≤5 USDC/day to the agent*. Approve it.
-**Say:** "I grant the city a budget straight from my wallet — a real MetaMask Advanced Permission, scoped to
-5 USDC a day. The agent decodes the context, and every city payment chains under MY grant. No keys shared, revocable anytime."
-> Flask fallback: if the popup misbehaves on camera, `npm run grant:dev` posts a synthetic grant through the
-> same validation path; `/app` shows **Budget root: ERC-7715 grant**. Redemption-under-grant is proven on-chain
-> regardless (`npm run prove:grant`, tx `0xaa84…197b`).
-
-### Scene 3 — Enter the city (0:52–1:08) · `/app`
-**Show:** the page is **alive on arrival** — the ticker scrolls our real proof tx hashes, a ghost "City Ledger —
-Preview" shows a sample run, and the Mayor panel shows **Budget root: ERC-7715 grant 0x…**. Click **▶ Run the demo** (one click, no typing).
-**Say:** "The city runs on MY granted budget. One click — the Manager hires specialists and hands each a
-*narrower* sub-budget. That's agent-to-agent redelegation: a worker can never exceed what it was given."
-
-### Scene 4 — The city works, on-chain (1:08–2:20)
-**Show:** the streaming **city-log**, then agent cards fill in — each with a 🧠 **Venice reasoning** line, then a
-**⛨ [gate] Venice approved** line, then the **City Ledger** going **paying → settled** (orange settle-flash), the
-**spend counter** ticking, and a **receipt ↗**. Click one → the **Basescan** transaction (the RedeemedDelegation events).
-**Say:** "Before any agent spends, its intent passes a **private Venice gate** — zero-retention reasoning that
-approves the spend *before* the on-chain redelegation fires. Private cognition gating a trusted action. Then it
-pays a real x402 service, settled as an ERC-7710 redemption through the **1Shot relayer** — gas in USDC, no ETH.
-Status comes from a **signature-verified 1Shot webhook**, with polling as fallback. Here's the actual transaction —
-a verifiable on-chain receipt." Point at **credit**: "each agent earns on-chain credit that sizes its next budget."
-
-### Scene 5 — Revoke (2:20–2:38)
-**Show:** **Revoke the city** → authority flips to REVOKED, dispatch disabled.
-**Say:** "And I can kill the whole city instantly — every agent loses its budget at once."
-
-### Scene 6 — Close (2:38–3:00)
-**Say:** "One build: agents that hire and pay each other under cryptographic budgets — MetaMask delegations,
-**private Venice spend-gates**, gasless 1Shot settlement, all proven on-chain. The delegation *is* the cap."
+## Track focus (be best in ONE, not present in six)
+Primary **Best 1Shot** (your floor) + **Best A2A** (the swing). The demo also earns **Best Venice** via the
+gate. Do **not** pitch Best Agent.
 
 ---
 
-## Capture checklist (the hard gate lives here)
-- [ ] the MetaMask **Grant permission** popup (Advanced Permissions) on screen
-- [ ] a **⛨ Venice gate approved** line on an agent (private cognition → trusted action)
-- [ ] the **City Ledger** going **settled** with a clickable **Basescan receipt** (delegation redeemed on-chain)
-- [ ] an agent **credit** score visible · **Revoke** shown · ≤ 3:00
+### 0:00–0:25 — SETUP: the nervous human
+**Say:** "I'm giving an AI agent real money on Base — and then trying to make it misbehave. Watch it fail."
+**Show:** `/app`. Point at the title: **Spending firewall**. Open `/grant` → grant the budget (honest fallback:
+`npm run grant:dev` if Flask is flaky — same `parseGrant` path, proven on-chain). Back on `/app`: Mayor panel
+shows **Budget root: ERC-7715 0x… (your wallet)**, the React Flow city map, ticker of real proof tx hashes.
 
-## Bonus B-roll (terminal — proves it without the UI)
-- `npm run city` → "2/2 agents paid via x402 · settled on-chain" + 🧠 Venice reasoning + gate verdicts + tx hashes
+### 0:25–1:05 — NORMAL PATH: both locks fire, in order
+**Show:** click **▶ Commission work**. On the agent card / ledger, narrate the ORDER:
+1. Venice **reasoning** line → **⛨ gate: Venice APPROVED**, *then*
+2. ledger **paying → settled** (orange flash), *then*
+3. click **receipt ↗** → Basescan **RedeemedDelegation** events.
+**Say:** "The private model approved it *first*. Only then could the on-chain cap be redeemed. Approval is a
+precondition, not a log line — and this is a real transaction, gas paid in USDC through 1Shot, no ETH."
+
+### 1:05–1:45 — 🔒 MONEY SHOT: Lock 1 refuses (no competitor can copy this)
+**Show:** click **⚠ Try a bad spend**. The agent cards go **red**, **⛨ gate: Venice BLOCKED** with its reason,
+the ledger entries read **blocked** — and there is **NO transaction, no receipt, nothing on-chain**.
+**Say:** "The agent wanted to spend. The private brain said no. Notice what's *missing* — there is no
+transaction, because the money never got the chance to move. The block happened in private cognition, before
+the chain ever saw it. And if Venice is unreachable, it fails **closed** — no approval, no spend."
+
+### 1:45–2:10 — Lock 2: the math stops you even if you fool the AI
+**Say:** "But what if you jailbreak the brain into approving something too big?" 
+**Show:** the second lock — an over-cap amount reverts at the **ERC-7710** layer (the deterministic cap-floor +
+the chain itself). "Two independent locks. Fool the AI and the math still stops you. The cap is enforced by the
+chain, not by the agent's goodwill." (A2A: the Manager re-delegated each worker a *narrower* cap it cannot exceed.)
+
+### 2:10–2:30 — Kill switch + close
+**Show:** **Revoke the city** → the whole map dims red, dispatch disabled.
+**Say:** "And if I trust none of it, one transaction severs the whole tree — every agent loses its budget in the
+same block. Two locks on every agent payment: a private brain that must say *yes*, an on-chain cap that says
+*how much*. I never trusted the agent. I didn't have to."
+
+---
+
+## Capture checklist
+- [ ] MetaMask **Grant permission** popup (Advanced Permissions) on screen
+- [ ] **⛨ gate: Venice APPROVED** → ledger **settled** → clickable **Basescan receipt** (delegation redeemed on-chain)
+- [ ] 🔒 **⚠ Try a bad spend** → **Venice BLOCKED**, ledger **blocked**, **NO tx** (the climax)
+- [ ] **Revoke** dims the city · ≤ 2:30
+
+## Bonus B-roll (terminal — proves it without the UI; gate verdicts now print)
+- `npm run city` → 2 agents paid via x402 + 🧠 Venice reasoning + **⛨ gate verdicts** + tx hashes
 - `npm run prove:grant` → redeem under a granted ERC-7715 periodic context, tx `0xaa84…197b`
 - `npm run prove:a2a` → A2A chain, status 200, tx `0x24af…ae27`
-- `npm run prove:x402` → 402 → paid → 200, tx `0xbbce…450b`
 - `CHAIN=base npm run prove` → the **mainnet** 1Shot redemption, tx `0x0349…448bf`
