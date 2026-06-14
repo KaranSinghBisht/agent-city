@@ -39,6 +39,26 @@ const DELEGATION_TREE = `<svg viewBox="0 0 360 310" width="360" height="310"
     .bp-enforce{font-family:"JetBrains Mono","SFMono-Regular",Menlo,monospace;
       font-size:8.5px;fill:#E05C1A;letter-spacing:.07em}
     .bp-corner{fill:none;stroke:#2A5080;stroke-width:.75}
+
+    /* ── Assembly: the drawing builds itself ── */
+    .bp-box{transform-box:fill-box;transform-origin:center;opacity:0;
+      animation:bpPop .55s cubic-bezier(.2,1.1,.3,1) .15s forwards}
+    .bp-title-bar{opacity:0;animation:bpFade .4s ease .35s forwards}
+    .bp-conn-solid,.bp-conn{stroke-dasharray:300;stroke-dashoffset:300;
+      animation:bpDraw .75s ease .4s forwards}
+    .bp-junc{opacity:0;animation:bpFade .3s ease 1s forwards}
+    .bp-dim{opacity:0;animation:bpFade .5s ease 1.05s forwards}
+    text{opacity:0;animation:bpFade .55s ease .8s forwards}
+    .mayor-box{filter:drop-shadow(0 0 7px rgba(224,92,26,.5))}
+    .bp-enforce{filter:drop-shadow(0 0 5px rgba(224,92,26,.6));
+      animation:bpFade .6s ease 1.2s forwards}
+    @keyframes bpDraw{to{stroke-dashoffset:0}}
+    @keyframes bpFade{to{opacity:1}}
+    @keyframes bpPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+    @media(prefers-reduced-motion:reduce){
+      .bp-box,.bp-title-bar,.bp-conn-solid,.bp-conn,.bp-junc,.bp-dim,text,.bp-enforce{
+        animation:none!important;opacity:1!important;stroke-dashoffset:0!important}
+    }
   </style>
 
   <!-- Drawing border / title block -->
@@ -117,6 +137,55 @@ const DELEGATION_TREE = `<svg viewBox="0 0 360 310" width="360" height="310"
   <text x="180" y="274" text-anchor="middle" class="bp-enforce">OVERSPEND REVERTS BY CONSTRUCTION</text>
 </svg>`;
 
+/** Blueprint elevation drawing of the city — the landing's establishing "picture". */
+function citySkyline(): string {
+  const base = 190;
+  const buildings = [
+    { x: 30, w: 64, h: 96 }, { x: 100, w: 48, h: 140 }, { x: 154, w: 78, h: 72 },
+    { x: 240, w: 56, h: 168 }, { x: 304, w: 92, h: 112, signal: true }, { x: 404, w: 46, h: 150 },
+    { x: 458, w: 70, h: 88 }, { x: 536, w: 60, h: 182 }, { x: 604, w: 84, h: 104 },
+    { x: 696, w: 52, h: 144 }, { x: 756, w: 74, h: 80 }, { x: 838, w: 58, h: 166 },
+    { x: 904, w: 80, h: 120 }, { x: 992, w: 50, h: 96 }, { x: 1050, w: 78, h: 150 }, { x: 1136, w: 38, h: 76 },
+  ] as { x: number; w: number; h: number; signal?: boolean }[];
+  const parts: string[] = [];
+  for (const b of buildings) {
+    const y = base - b.h;
+    parts.push(`<rect class="sky-b${b.signal ? " sky-b-signal" : ""}" x="${b.x}" y="${y}" width="${b.w}" height="${b.h}"/>`);
+    for (let wy = y + 12; wy < base - 8; wy += 16) {
+      for (let wx = b.x + 9; wx < b.x + b.w - 7; wx += 14) {
+        parts.push(`<rect class="sky-win${b.signal ? " sky-win-signal" : ""}" x="${wx}" y="${wy}" width="5" height="7"/>`);
+      }
+    }
+    const cx = b.x + b.w / 2;
+    if (b.signal) {
+      parts.push(
+        `<line class="sky-mast" x1="${cx}" y1="${y}" x2="${cx}" y2="${y - 26}"/>` +
+        `<rect class="sky-flag" x="${cx}" y="${y - 26}" width="40" height="13"/>` +
+        `<text class="sky-flagtext" x="${cx + 20}" y="${y - 16}" text-anchor="middle">7715</text>`);
+    } else if (b.h > 150) {
+      parts.push(`<line class="sky-antenna" x1="${cx}" y1="${y}" x2="${cx}" y2="${y - 13}"/>`);
+    }
+  }
+  const hatch = Array.from({ length: 40 }, (_, i) => `<line class="sky-dim" x1="${i * 32}" y1="190" x2="${i * 32 - 9}" y2="199"/>`).join("");
+  return `<svg viewBox="0 0 1200 222" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Blueprint elevation drawing of Agent City: a skyline with a signal-orange treasury tower flying an ERC-7715 flag">
+    <style>
+      .sky-b{fill:#0C1C30;stroke:#2A5080;stroke-width:1}
+      .sky-b-signal{stroke:#E05C1A;stroke-width:1.4}
+      .sky-win{fill:#1B3A5E}.sky-win-signal{fill:#7A3A1E}
+      .sky-mast{stroke:#E05C1A;stroke-width:1}.sky-antenna{stroke:#3D6080;stroke-width:1}
+      .sky-flag{fill:#E05C1A}
+      .sky-flagtext{font-family:"JetBrains Mono",monospace;font-size:8px;fill:#0C1C30;font-weight:600;letter-spacing:.04em}
+      .sky-ground{stroke:#2A5080;stroke-width:1}.sky-dim{stroke:#2A5080;stroke-width:.6}
+      .sky-cap{font-family:"JetBrains Mono",monospace;font-size:9px;fill:#3D6080;letter-spacing:.1em}
+    </style>
+    <line class="sky-ground" x1="0" y1="190" x2="1200" y2="190"/>
+    ${hatch}
+    ${parts.join("")}
+    <text class="sky-cap" x="14" y="216">FIG. 1 &mdash; AGENT CITY &middot; ELEVATION</text>
+    <text class="sky-cap" x="1186" y="216" text-anchor="end">SCALE: SCHEMATIC</text>
+  </svg>`;
+}
+
 export const LANDING_HTML = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -152,7 +221,13 @@ nav .container{
 .navlinks a.tab:hover{color:var(--ink)}
 
 /* ── Hero ── */
-.hero{padding:72px 0 64px;border-bottom:1px solid var(--dim-line)}
+.hero{padding:72px 0 64px;border-bottom:1px solid var(--dim-line);position:relative;overflow:hidden}
+.hero::before{
+  content:'';position:absolute;top:-120px;right:-80px;width:620px;height:620px;
+  background:radial-gradient(circle,rgba(224,92,26,.14),rgba(224,92,26,0) 62%);
+  pointer-events:none;z-index:0;
+}
+.hero .container{position:relative;z-index:1}
 .hero-grid{
   display:grid;grid-template-columns:1fr .9fr;
   gap:56px;align-items:start;
@@ -193,6 +268,7 @@ nav .container{
 /* Tree drawing card */
 .tree-card{
   border:1px solid var(--dim-line);background:var(--surface);padding:0;
+  box-shadow:0 0 0 1px rgba(224,92,26,.08),0 24px 60px rgba(0,0,0,.5);
 }
 .tree-card-head{
   padding:8px 14px;border-bottom:1px solid var(--dim-line);
@@ -203,7 +279,18 @@ nav .container{
   font-family:var(--mono);font-size:10px;font-weight:600;
   letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
 }
-.tree-card-body{padding:20px;display:flex;justify-content:center;background:var(--bg)}
+.tree-card-body{padding:20px;display:flex;justify-content:center;background:var(--bg);position:relative}
+.tree-card-body::before{
+  content:'';position:absolute;top:20%;left:50%;transform:translateX(-50%);
+  width:240px;height:160px;
+  background:radial-gradient(ellipse,rgba(224,92,26,.10),rgba(224,92,26,0) 70%);
+  pointer-events:none;
+}
+
+/* ── City elevation band (establishing picture) ── */
+.skyline-band{position:relative;overflow:hidden;border-bottom:1px solid var(--dim-line);background:var(--bg-2)}
+.skyline-band svg{display:block;width:100%;height:auto}
+.skyline-band::after{content:'';position:absolute;left:0;right:0;top:0;height:64px;background:linear-gradient(to bottom,var(--bg-2),transparent);pointer-events:none}
 
 /* ── How it works ── */
 section{padding:72px 0}
@@ -430,14 +517,14 @@ footer .fl a:hover{color:var(--ink)}
 <!-- Hero -->
 <header class="hero"><div class="container hero-grid">
   <div>
-    <div class="hero-section-label">MetaMask Smart Accounts &middot; 1Shot &middot; Venice AI</div>
-    <h1>AI agents that <em>hire</em> and <em>pay</em> each other &mdash; under hard on-chain caps.</h1>
-    <p class="lede">Give one agent a budget. It hires specialists, hands each a narrower budget, and they pay for what they need &mdash; all settled on Base. The delegation <em>is</em> the cap.</p>
-    <div class="cta-row">
-      <a class="btn btn-primary btn-lg" href="/app">Enter the city &rarr;</a>
+    <div class="hero-section-label reveal">MetaMask Smart Accounts &middot; 1Shot &middot; Venice AI</div>
+    <h1 class="reveal d1">AI agents that <em>hire</em> and <em>pay</em> each other &mdash; under hard on-chain caps.</h1>
+    <p class="lede reveal d2">Give one agent a budget. It hires specialists, hands each a narrower budget, and they pay for what they need &mdash; all settled on Base. The delegation <em>is</em> the cap.</p>
+    <div class="cta-row reveal d3">
+      <a class="btn btn-primary btn-lg cta-glow" href="/app">Enter the city &rarr;</a>
       <a class="btn btn-lg" href="#proof">View on-chain proof</a>
     </div>
-    <div class="tech-dim-list">
+    <div class="tech-dim-list reveal d4">
       <div class="dim-line"><span>Stack</span></div>
       <div class="tech-dim-item"><span class="ti-code">A2A</span> Capped sub-budgets via re-delegation (ERC-7710)</div>
       <div class="tech-dim-item"><span class="ti-code">x402</span> Agents pay agents via HTTP 402 pay-per-call</div>
@@ -447,7 +534,7 @@ footer .fl a:hover{color:var(--ink)}
   </div>
 
   <!-- Delegation tree — blueprint engineering drawing -->
-  <div class="tree-card" role="figure" aria-label="Delegation tree showing Mayor, Manager, Analyst, and Research agents with capped sub-budgets">
+  <div class="tree-card reveal d2" role="figure" aria-label="Delegation tree showing Mayor, Manager, Analyst, and Research agents with capped sub-budgets">
     <div class="tree-card-head">
       <span class="tc-label">Dwg: Delegation Tree &mdash; Authority Flow</span>
       <span class="badge ok"><span class="dot ok"></span>Live on Base</span>
@@ -458,10 +545,13 @@ footer .fl a:hover{color:var(--ink)}
   </div>
 </div></header>
 
+<!-- City elevation — establishing picture -->
+<div class="skyline-band" aria-hidden="false">${citySkyline()}</div>
+
 <!-- How it works -->
 <section id="how"><div class="container">
-  <div class="section-label">Operating Specification</div>
-  <div class="shead">
+  <div class="section-label reveal">Operating Specification</div>
+  <div class="shead reveal d1">
     <h2>A full agent economy &mdash; bounded by cryptography</h2>
     <p>Every cap is on-chain. Not trust &mdash; math.</p>
   </div>
@@ -469,7 +559,7 @@ footer .fl a:hover{color:var(--ink)}
   <div class="annotated-grid">
 
     <!-- Left: city-plan schematic -->
-    <div class="city-plan-wrap">
+    <div class="city-plan-wrap reveal">
       <svg class="city-schematic" viewBox="0 0 240 280" aria-hidden="true">
         <style>
           .cs-bg{fill:#091525}.cs-block{fill:#0F2540;stroke:#2A5080;stroke-width:.75}
@@ -527,7 +617,7 @@ footer .fl a:hover{color:var(--ink)}
     </div>
 
     <!-- Right: annotation list -->
-    <ol class="annotation-list" aria-label="How it works steps">
+    <ol class="annotation-list reveal d1" aria-label="How it works steps">
       <li>
         <div class="annot-marker"><span>A</span></div>
         <div class="annot-content">
@@ -563,7 +653,7 @@ footer .fl a:hover{color:var(--ink)}
 <!-- On-chain proof -->
 <section id="proof" style="padding-top:0"><div class="container">
   <div class="proof-section">
-    <div class="proof-title-block">
+    <div class="proof-title-block reveal">
       <span class="ptb-name">On-Chain Proof &mdash; Transaction Log</span>
       <span class="ptb-ref">Proven on Base Sepolia &amp; Base mainnet &mdash; not a mock</span>
     </div>
@@ -571,7 +661,7 @@ footer .fl a:hover{color:var(--ink)}
     <div class="proof-cards">
 
       <!-- Card 1: A2A Re-delegation -->
-      <div class="proof-card">
+      <div class="proof-card reveal d1">
         <div class="proof-card-inner">
           <div class="pc-tag">Best A2A Coordination &mdash; Sheet 01/04</div>
           <div class="pc-head">Agents hire agents</div>
@@ -586,7 +676,7 @@ footer .fl a:hover{color:var(--ink)}
       </div>
 
       <!-- Card 2: x402 Payment -->
-      <div class="proof-card">
+      <div class="proof-card reveal d2">
         <div class="proof-card-inner">
           <div class="pc-tag">Best x402 + ERC-7710 &mdash; Sheet 02/04</div>
           <div class="pc-head">Agents pay agents</div>
@@ -601,7 +691,7 @@ footer .fl a:hover{color:var(--ink)}
       </div>
 
       <!-- Card 3: 1Shot gasless -->
-      <div class="proof-card">
+      <div class="proof-card reveal d3">
         <div class="proof-card-inner">
           <div class="pc-tag">Best 1Shot Relayer &mdash; Sheet 03/04</div>
           <div class="pc-head">Gasless settlement</div>
@@ -621,7 +711,7 @@ footer .fl a:hover{color:var(--ink)}
     <div class="proof-cards" style="margin-top:1px">
 
       <!-- Card 4: Venice reasoning -->
-      <div class="proof-card">
+      <div class="proof-card reveal d1">
         <div class="proof-card-inner">
           <div class="pc-tag">Best Venice AI &mdash; Sheet 04/04</div>
           <div class="pc-head">Private reasoning</div>
@@ -635,7 +725,7 @@ footer .fl a:hover{color:var(--ink)}
       </div>
 
       <!-- Card 5: The thesis -->
-      <div class="proof-card">
+      <div class="proof-card reveal d2">
         <div class="proof-card-inner">
           <div class="pc-tag">The Thesis &mdash; Architecture</div>
           <div class="pc-head">The budget is the leash</div>
@@ -649,7 +739,7 @@ footer .fl a:hover{color:var(--ink)}
       </div>
 
       <!-- Card 6: Best agent -->
-      <div class="proof-card">
+      <div class="proof-card reveal d3">
         <div class="proof-card-inner">
           <div class="pc-tag">Best Agent &mdash; Bounded Autonomy</div>
           <div class="pc-head">Bounded autonomy</div>
@@ -668,19 +758,19 @@ footer .fl a:hover{color:var(--ink)}
 
 <!-- Why trust -->
 <section style="padding-top:0"><div class="container">
-  <div class="section-label">Specification &mdash; Security Properties</div>
+  <div class="section-label reveal">Specification &mdash; Security Properties</div>
   <div class="spec-grid">
-    <div class="spec-cell">
+    <div class="spec-cell reveal d1">
       <div class="sc-glyph">SPC-01 / KEY-CUSTODY</div>
       <h3>No agent holds your keys</h3>
       <p>Agents sign nothing on your behalf beyond the scoped delegations you explicitly grant down the tree. Your wallet stays in your custody.</p>
     </div>
-    <div class="spec-cell">
+    <div class="spec-cell reveal d2">
       <div class="sc-glyph">SPC-02 / CAP-ENFORCEMENT</div>
       <h3>Every cap is cryptographic</h3>
       <p>Budgets are on-chain caveats, not prompts. Exceed one and the transaction reverts &mdash; by construction, not by policy or agent goodwill.</p>
     </div>
-    <div class="spec-cell">
+    <div class="spec-cell reveal d3">
       <div class="sc-glyph">SPC-03 / REVOCATION</div>
       <h3>Revoke the whole tree</h3>
       <p>Pull authority at any level instantly. Cut the Manager and every worker beneath it loses its budget in the same block &mdash; cryptographic kill-switch.</p>
@@ -690,11 +780,11 @@ footer .fl a:hover{color:var(--ink)}
 
 <!-- CTA band -->
 <section style="padding-top:0"><div class="container">
-  <div class="ctaband">
+  <div class="ctaband reveal">
     <div class="ctaband-content">
       <h2>Watch a city of agents transact under hard caps.</h2>
       <p>The live demo runs on Base: the Manager hires workers, they pay via x402, 1Shot settles on-chain &mdash; and you can revoke the whole city in one click.</p>
-      <a class="btn btn-primary btn-lg" href="/app">Enter the city &rarr;</a>
+      <a class="btn btn-primary btn-lg cta-glow" href="/app">Enter the city &rarr;</a>
     </div>
   </div>
 </div></section>
@@ -713,4 +803,20 @@ footer .fl a:hover{color:var(--ink)}
   </div>
 </div></footer>
 
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
+<script>
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){
+    els.forEach(function(e){e.classList.add('in');});
+    return;
+  }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}
+    });
+  },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(e){io.observe(e);});
+})();
+</script>
 </body></html>`;

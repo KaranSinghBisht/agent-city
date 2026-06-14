@@ -5,7 +5,9 @@
  * Barlow Condensed for all structural headings, JetBrains Mono for
  * every number and hash, dimension-line annotations for cap spans.
  * Signal orange (#E05C1A) for confirmed/settled state.
- * No purple. No gradients. No blur. No radius > 2px on surfaces.
+ * No purple. Square edges (radius 0). Selective luminosity only:
+ * signal-orange glow lives on authority + settlement accents, never flat-everywhere.
+ * Motion is choreographed (assemble / reveal / lift), never decorative.
  */
 
 export const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -256,6 +258,62 @@ p{margin:0}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 @keyframes spin-stroke{to{stroke-dashoffset:0}}
+
+/* ════ MOTION + LUMINOSITY LAYER — cinematic blueprint ════ */
+
+/* Reveal-on-scroll — a tiny IntersectionObserver toggles .in */
+.reveal{
+  opacity:0;transform:translateY(22px);
+  transition:opacity .7s cubic-bezier(.22,.68,.16,1),
+             transform .7s cubic-bezier(.22,.68,.16,1);
+  will-change:opacity,transform;
+}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.07s}
+.reveal.d2{transition-delay:.14s}
+.reveal.d3{transition-delay:.21s}
+.reveal.d4{transition-delay:.28s}
+.reveal.d5{transition-delay:.35s}
+
+/* Entrance keyframes */
+@keyframes stampSlam{
+  0%{opacity:0;transform:rotate(-18deg) scale(1.7)}
+  55%{opacity:1}
+  100%{opacity:1;transform:rotate(-18deg) scale(1)}
+}
+@keyframes glowBreathe{
+  0%,100%{box-shadow:0 0 0 0 rgba(224,92,26,0)}
+  50%{box-shadow:0 0 24px 0 rgba(224,92,26,.32)}
+}
+
+/* Depth — surfaces lift out of the drawing grid on hover */
+.card,.proof-card,.spec-cell{
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.proof-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 16px 36px rgba(0,0,0,.5);
+  border-color:var(--ink-3);position:relative;z-index:2;
+}
+.spec-cell:hover{
+  box-shadow:inset 0 0 0 1px var(--ink-3),0 12px 28px rgba(0,0,0,.4);
+  position:relative;z-index:2;
+}
+
+/* Signal glow accents — authority + settlement only */
+.glow-signal{box-shadow:0 0 0 1px var(--signal),0 0 30px rgba(224,92,26,.30)}
+.btn-primary,.btn-signal{box-shadow:0 0 18px rgba(224,92,26,.20)}
+.btn-primary:hover,.btn-signal:hover{box-shadow:0 0 30px rgba(224,92,26,.48)}
+.cta-glow{animation:glowBreathe 3.4s ease-in-out infinite}
+
+/* SETTLED stamp slams in when its card reveals */
+.reveal.in .stamp-settled{animation:stampSlam .55s cubic-bezier(.2,1.35,.4,1) both}
+
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1!important;transform:none!important;transition:none!important}
+  .cta-glow{animation:none!important}
+  *{animation-duration:.001s!important;animation-iteration-count:1!important}
+}
 
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 ::selection{background:rgba(224,92,26,.22);color:var(--ink)}

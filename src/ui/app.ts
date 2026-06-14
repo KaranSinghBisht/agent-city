@@ -1,8 +1,40 @@
 /** Agent City app (GET /app). Blueprint Civic theme. Drives /city/run + /city/run/:id and the live City Ledger. */
 import { FONTS, THEME_CSS } from "./theme.js";
 
-/** Animated blueprint crosshair — empty state SVG. */
-const CROSSHAIR = `<svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" style="display:block;margin:0 auto"><circle cx="32" cy="32" r="18" fill="none" stroke="var(--dim-line)" stroke-width="1" stroke-dasharray="3 4"/><circle cx="32" cy="32" r="5" fill="none" stroke="var(--ink-3)" stroke-width="1"><animate attributeName="r" values="5;8;5" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite"/></circle><line x1="32" y1="4" x2="32" y2="22" stroke="var(--ink-3)" stroke-width="1"/><line x1="32" y1="42" x2="32" y2="60" stroke="var(--ink-3)" stroke-width="1"/><line x1="4" y1="32" x2="22" y2="32" stroke="var(--ink-3)" stroke-width="1"/><line x1="42" y1="32" x2="60" y2="32" stroke="var(--ink-3)" stroke-width="1"/></svg>`;
+/** Animated blueprint crosshair — empty state SVG. Now with sonar-ping ring. */
+const CROSSHAIR = `<svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" style="display:block;margin:0 auto"><circle cx="32" cy="32" r="18" fill="none" stroke="var(--dim-line)" stroke-width="1" stroke-dasharray="3 4"/><circle cx="32" cy="32" r="18" fill="none" stroke="var(--ink-3)" stroke-width="0.75" opacity="0.4"><animate attributeName="r" values="18;32;18" dur="2.4s" begin="0.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0;0.4" dur="2.4s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="32" cy="32" r="5" fill="none" stroke="var(--ink-3)" stroke-width="1"><animate attributeName="r" values="5;8;5" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite"/></circle><line x1="32" y1="4" x2="32" y2="22" stroke="var(--ink-3)" stroke-width="1"/><line x1="32" y1="42" x2="32" y2="60" stroke="var(--ink-3)" stroke-width="1"/><line x1="4" y1="32" x2="22" y2="32" stroke="var(--ink-3)" stroke-width="1"/><line x1="42" y1="32" x2="60" y2="32" stroke="var(--ink-3)" stroke-width="1"/></svg>`;
+
+/** Ghost ledger rows shown in the idle empty state (Linear technique). */
+const GHOST_BASE_ROWS = [
+  { role: "ANALYST",    service: "Market intelligence via x402",        amount: "0.0005" },
+  { role: "RESEARCHER", service: "On-chain data fetch &middot; Base",   amount: "0.0003" },
+  { role: "SCOUT",      service: "Price feed &middot; Venice RPC",      amount: "0.0004" },
+  { role: "WRITER",     service: "Report synthesis &middot; Venice AI", amount: "0.0002" },
+  { role: "AUDITOR",    service: "Compliance &middot; ERC-7715 policy", amount: "0.0003" },
+  { role: "NOTARY",     service: "Receipt notarisation &middot; Base",  amount: "0.0001" },
+];
+
+function ghostLedgerHTML(): string {
+  const makeRow = (r: { role: string; service: string; amount: string }) =>
+    `<tr class="row-settled ghost-row">` +
+    `<td class="agent-col"><div class="role-name">${r.role}</div><div class="addr-sub">0x????&hellip;????</div></td>` +
+    `<td class="svc-cell">${r.service}</td>` +
+    `<td class="amt-cell">${r.amount} USDC</td>` +
+    `<td class="status-cell"><span class="badge ok"><span class="dot ok"></span>SETTLED</span></td>` +
+    `<td><span class="muted">&mdash;</span></td>` +
+    `</tr>`;
+  const single = GHOST_BASE_ROWS.map(makeRow).join("");
+  // Scroll a BLOCK-LEVEL .ghost-track div (not a tbody) so overflow:hidden on
+  // .ghost-viewport clips it reliably — table-internal transforms leak in Chrome.
+  return `<div class="ghost-ledger" aria-hidden="true">` +
+    `<div class="ledger-masthead"><div class="lm-inner">` +
+    `<span class="lm-name">City Ledger &mdash; Preview</span>` +
+    `<span class="lm-vol">Example run &middot; dispatch a goal to begin</span>` +
+    `</div></div>` +
+    `<div class="ghost-viewport"><div class="ghost-track">` +
+    `<table class="ledger ghost-table"><tbody>${single}${single}</tbody></table>` +
+    `</div></div></div>`;
+}
 
 export const APP_HTML = `<!doctype html>
 <html lang="en"><head>
@@ -197,6 +229,26 @@ textarea#goal:disabled{opacity:.4}
 }
 @keyframes dispatch-fill{0%{width:0}60%{width:62%}90%{width:78%}100%{width:78%}}
 
+/* ── city log — streaming status lines (Vercel technique) ── */
+.city-log{
+  margin-top:8px;
+  border:1px solid var(--dim-line);
+  background:var(--bg);
+  padding:8px 12px;
+  max-height:140px;
+  overflow:hidden;
+  display:flex;flex-direction:column;gap:2px;
+}
+.city-log-line{
+  font-family:var(--mono);font-size:10px;color:var(--ink-2);
+  letter-spacing:.03em;line-height:1.5;
+  opacity:0;
+  animation:log-appear 0.12s ease forwards;
+}
+.city-log-line .ll-prefix{color:var(--ink-3)}
+.city-log-line .ll-signal{color:var(--signal)}
+@keyframes log-appear{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
 /* ── spend total counter ──────────────────────────── */
 .spend-counter{
   display:none;margin-bottom:14px;
@@ -223,19 +275,56 @@ textarea#goal:disabled{opacity:.4}
 
 /* ── empty state ──────────────────────────────────── */
 .empty{
-  padding:52px 24px;text-align:center;
+  padding:28px 24px 20px;text-align:center;
   border:1px solid var(--dim-line);
+  border-bottom:0;
   background:var(--surface);
+  position:relative;z-index:1;
 }
-.empty .glyph{margin:0 auto 16px}
+.empty .glyph{margin:0 auto 12px}
 .empty .msg{
   font-family:var(--display);font-size:16px;font-weight:700;
   text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);
-  margin-bottom:8px;
+  margin-bottom:6px;
 }
 .empty .hint{
   font-family:var(--body);font-size:13px;color:var(--ink-3);
   max-width:40ch;margin:0 auto;line-height:1.6;
+}
+
+/* ── ghost ledger — Linear idle scroll technique ──── */
+.ghost-ledger{
+  opacity:0.28;
+  pointer-events:none;
+  user-select:none;
+  border:1px solid var(--dim-line);
+  border-top:0;
+  position:relative;
+  background:var(--bg);
+}
+/* Clipping viewport — a block-level .ghost-track scrolls inside it.
+   overflow:hidden on a normal div clips reliably (unlike a transformed tbody). */
+.ghost-viewport{
+  position:relative;
+  max-height:168px;
+  overflow:hidden;
+}
+.ghost-track{
+  animation:ghost-scroll 22s linear infinite;
+  will-change:transform;
+}
+.ghost-table{border:0;width:100%}
+/* Fade masks top + bottom so rows dissolve at both edges (never bleed out) */
+.ghost-viewport::before,
+.ghost-viewport::after{
+  content:'';position:absolute;left:0;right:0;height:46px;
+  pointer-events:none;z-index:1;
+}
+.ghost-viewport::before{top:0;background:linear-gradient(to top,transparent,var(--bg))}
+.ghost-viewport::after{bottom:0;background:linear-gradient(to bottom,transparent,var(--bg))}
+@keyframes ghost-scroll{
+  from{transform:translateY(0)}
+  to{transform:translateY(-50%)}
 }
 
 /* ── city ledger — drawing-sheet hero ────────────── */
@@ -264,6 +353,15 @@ textarea#goal:disabled{opacity:.4}
 /* Settled row — full signal-dim tint */
 .ledger tr.row-settled td{background:var(--signal-dim)}
 .ledger tr.row-settled:hover td{background:rgba(224,92,26,.22)}
+
+/* Row settle flash — Rainbow on-chain confirmation technique */
+@keyframes settle-flash{
+  0%{background:rgba(224,92,26,.42)}
+  100%{background:var(--signal-dim)}
+}
+.ledger tr.row-settle-flash td{
+  animation:settle-flash .65s ease both;
+}
 
 /* Status cell — fixed width for stamp */
 .ledger .status-cell{width:110px;overflow:hidden;text-align:center}
@@ -323,12 +421,22 @@ textarea#goal:disabled{opacity:.4}
   gap:12px;align-items:center;
   padding:10px 12px;border-bottom:1px solid var(--dim-line);
   border-top:2px solid var(--dim-line);
-  animation:fadeUp .3s ease both;
   position:relative;
   background:var(--surface);
 }
 .acard:first-child{border-top-width:1px}
 .acard.mayor{border-top:2px solid var(--signal);background:var(--surface)}
+
+/* Stagger entrance — Framer technique */
+.acard-enter{
+  opacity:0;
+  transform:translateY(8px);
+}
+.acard-in{
+  opacity:1;
+  transform:none;
+  transition:opacity .28s ease, transform .28s ease;
+}
 
 /* Title-block corner label */
 .acard .role{
@@ -400,6 +508,46 @@ textarea#goal:disabled{opacity:.4}
   .activity{padding:12px 14px 48px}
   .ledger th,.ledger td{padding:7px 8px}
 }
+
+/* ════ MOTION + LUMINOSITY (app) ════ */
+
+/* indeterminate dispatch loader arc (referenced inline on dispatch) */
+@keyframes spin-arc{from{stroke-dashoffset:87.96}to{stroke-dashoffset:0}}
+
+/* one-shot shell entrance on load — choreographed, not all-at-once */
+nav,.ticker-strip,.grant-bar{animation:fadeUp .5s ease both}
+.spec-title-block{animation:fadeUp .5s ease .05s both}
+.panel-section{animation:fadeUp .5s ease .12s both}
+.activity-masthead{animation:fadeUp .5s ease .18s both}
+#out>.empty{animation:fadeUp .6s ease .24s both}
+
+/* authority source glows (the Mayor card) */
+.acard.mayor{box-shadow:0 0 26px rgba(224,92,26,.14)}
+
+/* agent cards lift out of the sheet on hover */
+.acard{transition:box-shadow .18s ease,border-color .18s ease}
+.acard:hover{box-shadow:0 10px 26px rgba(0,0,0,.42);border-color:var(--ink-3);z-index:2}
+
+/* settlement luminosity — the orange numbers glow */
+.spend-counter .sc-total{text-shadow:0 0 20px rgba(224,92,26,.42)}
+.ledger .amt-cell:not(.muted){text-shadow:0 0 12px rgba(224,92,26,.28)}
+.stamp-settled{box-shadow:0 0 16px rgba(224,92,26,.22)}
+
+/* ── Railway cursor depth-pool — CSS var set by JS ─ */
+body{
+  --mx:50vw;--my:50vh;
+  background-image:
+    radial-gradient(600px circle at var(--mx) var(--my),rgba(80,140,220,0.045) 0%,transparent 70%),
+    repeating-linear-gradient(0deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 32px),
+    repeating-linear-gradient(90deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 32px);
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ghost-track{animation:none}
+  .city-log-line{animation:none;opacity:1}
+  .acard-enter,.acard-in{opacity:1;transform:none;transition:none}
+  .ledger tr.row-settle-flash td{animation:none}
+}
 </style></head>
 <body>
 
@@ -415,13 +563,15 @@ textarea#goal:disabled{opacity:.4}
 <!-- Ticker tape: live payment feed -->
 <div class="ticker-strip" id="ticker-strip" role="marquee" aria-label="Live payment feed">
   <div class="ticker-inner" id="ticker-inner">
-    <span class="ticker-item">City Ledger &middot; IDLE &middot; dispatch a goal to begin</span>
-    <span class="ticker-item">Every payment settles on-chain &middot; Basescan receipts</span>
-    <span class="ticker-item">Budgets are ERC-7715 delegations &middot; enforced on Base</span>
+    <span class="ticker-item ticker-settled">A2A REDELEGATION &middot; 0x24af&hellip;ae27 &middot; SETTLED</span>
+    <span class="ticker-item ticker-settled">x402 + ERC-7710 &middot; 0xbbce&hellip;450b &middot; SETTLED</span>
+    <span class="ticker-item ticker-settled">1SHOT MAINNET &middot; 0x0349&hellip;48bf &middot; SETTLED</span>
+    <span class="ticker-item ticker-settled">ERC-7715 GRANT &middot; 0xaa84&hellip;197b &middot; SETTLED</span>
     <span class="ticker-item">The delegation IS the cap &middot; overspend reverts by construction</span>
-    <span class="ticker-item">City Ledger &middot; IDLE &middot; dispatch a goal to begin</span>
-    <span class="ticker-item">Every payment settles on-chain &middot; Basescan receipts</span>
-    <span class="ticker-item">Budgets are ERC-7715 delegations &middot; enforced on Base</span>
+    <span class="ticker-item ticker-settled">A2A REDELEGATION &middot; 0x24af&hellip;ae27 &middot; SETTLED</span>
+    <span class="ticker-item ticker-settled">x402 + ERC-7710 &middot; 0xbbce&hellip;450b &middot; SETTLED</span>
+    <span class="ticker-item ticker-settled">1SHOT MAINNET &middot; 0x0349&hellip;48bf &middot; SETTLED</span>
+    <span class="ticker-item ticker-settled">ERC-7715 GRANT &middot; 0xaa84&hellip;197b &middot; SETTLED</span>
     <span class="ticker-item">The delegation IS the cap &middot; overspend reverts by construction</span>
   </div>
 </div>
@@ -462,7 +612,8 @@ textarea#goal:disabled{opacity:.4}
       <span class="form-label">Goal</span>
       <textarea id="goal" placeholder="e.g. Produce a market brief on ETH"></textarea>
       <div class="form-actions">
-        <button class="btn btn-primary" id="dispatch">Dispatch &rarr;</button>
+        <button class="btn btn-primary cta-glow" id="rundemo">&#9654;&nbsp; Run the demo</button>
+        <button class="btn" id="dispatch">Dispatch &rarr;</button>
       </div>
       <div id="approveWrap"></div>
     </div>
@@ -480,10 +631,12 @@ textarea#goal:disabled{opacity:.4}
       </div>
     </div>
 
-    <!-- Dispatch progress indicator -->
+    <!-- Dispatch progress indicator + streaming log -->
     <div class="dispatch-state" id="dispatch-state">
       <div class="dispatch-label" id="dispatch-label">DISPATCHING &mdash; COMMISSIONING WORKERS</div>
       <div class="dispatch-bar-track"><div class="dispatch-bar-fill" id="dispatch-bar"></div></div>
+      <!-- Vercel streaming log panel -->
+      <div class="city-log" id="city-log"></div>
     </div>
 
     <!-- Live spend counter (shown when run is active) -->
@@ -499,6 +652,8 @@ textarea#goal:disabled{opacity:.4}
         <div class="msg">The city is idle.</div>
         <div class="hint">Give it a goal and dispatch &mdash; the Manager hires workers under capped sub-budgets, and each payment settles on-chain.</div>
       </div>
+      <!-- Ghost ledger preview (Linear idle-scroll technique) -->
+      ${ghostLedgerHTML()}
     </div>
 
   </section>
@@ -508,6 +663,13 @@ textarea#goal:disabled{opacity:.4}
 <script>
 var $=function(s){return document.querySelector(s);};
 var info=null,polling=false,revoked=false,seenTx=[];
+
+/* ── seenRows — keyed by txHash|role for targeted DOM updates ── */
+var seenRows={};
+
+/* enable/disable both dispatch buttons together */
+function busy(on){var d=$('#dispatch');if(d)d.disabled=on;var r=$('#rundemo');if(r)r.disabled=on;}
+
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
   return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
 });}
@@ -515,13 +677,75 @@ function shrink(a){return a&&a!=='0x'?String(a).slice(0,6)+'…'+String(a).slice
 function fmtUSDC(base){
   if(base==null||base==='')return'—';
   var n=Number(base)/1e6;if(isNaN(n))return String(base);
-  var s=n.toFixed(4).replace(/0+$/,'').replace(/\\.$/,'');return s+' USDC';
+  var s=n.toFixed(4).replace(/0+$$/,'').replace(/\\.$$/,'');return s+' USDC';
 }
 function calcSpend(ledger){
   return ledger.reduce(function(s,e){return s+(e.status==='settled'?Number(e.amount||0):0);},0);
 }
 
-/* ── ticker tape ─────────────────────────────────── */
+/* ── Stripe: animated counter (requestAnimationFrame ramp) ──── */
+var _counterRaf=null;
+function animateCounter(fromVal,toVal,durationMs){
+  var el=$('#spend-total');if(!el)return;
+  if(_counterRaf)cancelAnimationFrame(_counterRaf);
+  var start=null;
+  var from=Number(fromVal)||0;
+  var to=Number(toVal)||0;
+  function step(ts){
+    if(!start)start=ts;
+    var p=Math.min(1,(ts-start)/durationMs);
+    var ease=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2; // easeInOutQuad
+    var cur=from+(to-from)*ease;
+    el.textContent=fmtUSDC(cur);
+    if(p<1){_counterRaf=requestAnimationFrame(step);}
+    else{el.textContent=fmtUSDC(to);_counterRaf=null;}
+  }
+  _counterRaf=requestAnimationFrame(step);
+}
+var _lastSpend=0;
+
+/* ── Vercel: streaming log lines ─────────────────────────────── */
+var _logInterval=null;
+var LOG_LINES=[
+  ['[CITY]','Commissioning the city…'],
+  ['[CITY]','Hiring ANALYST via Venice reasoning'],
+  ['[CITY]','Hiring RESEARCHER — on-chain data feed'],
+  ['[CITY]','Hiring SCOUT — price aggregation'],
+  ['[CITY]','Granting sub-budget 0.0005 USDC · ERC-7710'],
+  ['[CITY]','ANALYST dispatched · x402 endpoint contacted'],
+  ['[CITY]','Granting sub-budget 0.0003 USDC · ERC-7710'],
+  ['[CITY]','RESEARCHER dispatched · Base Sepolia RPC'],
+  ['[CITY]','Awaiting settlement · 1Shot relayer'],
+  ['[CITY]','Granting sub-budget 0.0004 USDC · ERC-7710'],
+  ['[CITY]','SCOUT dispatched · Venice Crypto-RPC'],
+  ['[CITY]','Payments incoming · watching ledger…'],
+];
+var _logIdx=0;
+function appendLog(prefix,text,isSignal){
+  var log=$('#city-log');if(!log)return;
+  var line=document.createElement('div');
+  line.className='city-log-line';
+  var pfxClass=isSignal?'ll-signal':'ll-prefix';
+  line.innerHTML='<span class="'+pfxClass+'">'+esc(prefix)+'</span> '+esc(text);
+  log.appendChild(line);
+  /* keep at most 10 visible lines */
+  while(log.children.length>10)log.removeChild(log.firstChild);
+}
+function startLogStream(){
+  _logIdx=0;
+  var log=$('#city-log');if(log)log.innerHTML='';
+  _logInterval=setInterval(function(){
+    if(_logIdx<LOG_LINES.length){
+      var l=LOG_LINES[_logIdx++];
+      appendLog(l[0],l[1],false);
+    }
+  },520);
+}
+function stopLogStream(){
+  if(_logInterval){clearInterval(_logInterval);_logInterval=null;}
+}
+
+/* ── ticker tape ─────────────────────────────────────────────── */
 function pushTicker(role,amount,status){
   var inner=$('#ticker-inner');if(!inner)return;
   var settled=status==='settled';
@@ -533,7 +757,7 @@ function pushTicker(role,amount,status){
   inner.appendChild(item.cloneNode(true));
 }
 
-/* ── badges ──────────────────────────────────────── */
+/* ── badges ──────────────────────────────────────────────────── */
 var ST={queued:['QUEUED','warn'],hiring:['HIRING','run'],paying:['PAYING','run'],settled:['SETTLED','ok'],failed:['FAILED','bad']};
 function badge(s){var m=ST[s]||['…','run'];return'<span class="badge '+m[1]+'"><span class="dot '+m[1]+'"></span>'+m[0]+'</span>';}
 function rcpt(run,e){
@@ -544,7 +768,7 @@ function rcpt(run,e){
     :'<span class="mono">'+esc(h.slice(0,10))+'…</span>';
 }
 
-/* ── load info / grant / policy ──────────────────── */
+/* ── load info / grant / policy ──────────────────────────────── */
 async function loadInfo(){
   try{info=await (await fetch('/info')).json();}catch(e){info={mode:'dry-run',network:'?'};}
   var live=info.mode==='live';
@@ -554,7 +778,7 @@ async function loadInfo(){
   $('#banner').innerHTML=h;
   if(info.treasury)$('#m-treasury').textContent=shrink(info.treasury);
   if(!live){
-    $('#dispatch').disabled=true;$('#goal').disabled=true;
+    busy(true);$('#goal').disabled=true;
     $('#out').innerHTML='<div style="border:2px solid var(--warn);outline:1px solid var(--warn);outline-offset:3px;padding:18px;background:var(--warn-dim)">'
       +'<div style="font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--warn);margin-bottom:8px">Notice &mdash; Demo Mode</div>'
       +'<p style="font-family:var(--body);font-size:13px;color:var(--ink-2);line-height:1.6">'
@@ -583,29 +807,108 @@ async function loadPolicy(){
   $('#m-status').innerHTML=revoked
     ?'<span class="badge bad"><span class="dot bad"></span>REVOKED</span>'
     :'<span class="badge ok"><span class="dot ok"></span>ACTIVE</span>';
-  if(revoked){$('#dispatch').disabled=true;$('#goal').disabled=true;}
+  if(revoked){busy(true);$('#goal').disabled=true;}
 }
 
-/* ── render ──────────────────────────────────────── */
+/* ── Framer stagger entrance on agent cards ──────────────────── */
+function staggerCards(container){
+  var cards=container.querySelectorAll('.acard');
+  cards.forEach(function(el,i){
+    el.classList.add('acard-enter');
+    /* stagger cap at 350ms total */
+    var delay=Math.min(i*70,350);
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        el.style.transitionDelay=delay+'ms';
+        el.classList.remove('acard-enter');
+        el.classList.add('acard-in');
+        /* clean up delay after transition ends */
+        el.addEventListener('transitionend',function once(){
+          el.style.transitionDelay='';
+          el.removeEventListener('transitionend',once);
+        });
+      });
+    });
+  });
+}
+
+/* ── Rainbow: targeted row update with settle-flash ─────────── */
+function rowKey(e){return e.txHash||('role:'+e.role);}
+
+function updateOrCreateRow(tbody,run,e,isNew){
+  var key=rowKey(e);
+  var isSettled=e.status==='settled';
+  var existing=tbody.querySelector('[data-rk="'+CSS.escape(key)+'"]');
+
+  var statusHtml=isSettled?'<span class="stamp-settled">Settled</span>':badge(e.status);
+  var rcptHtml=rcpt(run,e)||'<span class="muted">—</span>';
+
+  if(existing){
+    /* only update cells that may have changed */
+    var prevSettled=existing.classList.contains('row-settled');
+    var statusCell=existing.querySelector('.status-cell');
+    var amtCell=existing.querySelector('.amt-cell');
+    if(statusCell)statusCell.innerHTML=statusHtml;
+    if(amtCell&&e.amount){
+      amtCell.className='amt-cell';
+      amtCell.innerHTML=esc(fmtUSDC(e.amount));
+    }
+    /* flash on newly settled */
+    if(isSettled&&!prevSettled){
+      existing.classList.add('row-settled');
+      existing.classList.remove('row-settle-flash');
+      /* force reflow to restart animation */
+      void existing.offsetWidth;
+      existing.classList.add('row-settle-flash');
+      existing.addEventListener('animationend',function once(){
+        existing.classList.remove('row-settle-flash');
+        existing.removeEventListener('animationend',once);
+      });
+    }
+    return;
+  }
+
+  /* create new row */
+  var tr=document.createElement('tr');
+  tr.setAttribute('data-rk',key);
+  if(isSettled)tr.classList.add('row-settled');
+  tr.innerHTML=
+    '<td class="agent-col">'
+    +'<div class="role-name">'+esc(e.role)+'</div>'
+    +'<div class="addr-sub">'+esc(shrink(e.agent))+'</div>'
+    +'</td>'
+    +'<td class="svc-cell">'
+    +esc(e.service||'—')
+    +(e.reasoning?'<div class="reason-line"><em>[reason]</em> '+esc(e.reasoning)+'</div>':'')
+    +(e.credit!=null?'<div class="reason-line">credit '+esc(e.credit)+' &middot; '+esc(e.tier||'')+'</div>':'')
+    +(e.data?'<div class="reason-line">received: '+esc(e.data)+'</div>':'')
+    +'</td>'
+    +'<td class="amt-cell'+(e.amount?'':' muted')+'">'+esc(fmtUSDC(e.amount))+'</td>'
+    +'<td class="status-cell">'+statusHtml+'</td>'
+    +'<td>'+rcptHtml+'</td>';
+  tbody.appendChild(tr);
+}
+
+/* ── render ──────────────────────────────────────────────────── */
 function render(run){
   $('#runbadge').innerHTML=badge(run.status==='done'?'settled':run.status==='failed'?'failed':run.status||'run');
 
   var isGrant=run.authorityRoot==='grant';
   var spend=calcSpend(run.ledger);
 
-  // Update live spend counter
+  /* Stripe animated counter */
   var sc=$('#spend-counter');
   if(sc){
     sc.classList.add('visible');
-    var st=$('#spend-total');
-    if(st)st.textContent=fmtUSDC(spend);
+    animateCounter(_lastSpend,spend,420);
+    _lastSpend=spend;
     var budgetNum=parseFloat(($('#m-budget').textContent||'5').replace(' USDC',''))||5;
     var pctBudget=Math.min(100,Math.round(spend/1e6/budgetNum*100));
     var sf=$('#spend-fill');
     if(sf)sf.style.width=pctBudget+'%';
   }
 
-  // Push newly settled entries to ticker
+  /* ticker */
   run.ledger.forEach(function(e){
     if(e.status==='settled'&&e.txHash&&seenTx.indexOf(e.txHash)<0){
       seenTx.push(e.txHash);
@@ -613,103 +916,163 @@ function render(run){
     }
   });
 
-  var h='';
+  /* build DOM structure if it does not exist yet */
+  var out=$('#out');
+  var ledgerSection=out.querySelector('.ledger-section:not(.ghost-ledger)');
+  var agentsSection=out.querySelector('.agents-section');
 
-  // ── CITY LEDGER (hero element, first) ──
-  h+='<div class="ledger-section">';
-  h+='<div class="ledger-masthead">'
-    +'<div class="lm-inner">'
-    +'<span class="lm-name">City Ledger &mdash; Transaction Log</span>'
-    +'<span class="lm-vol">Settled: '+esc(fmtUSDC(spend))+'</span>'
-    +'</div>'
-    +'</div>';
+  if(!ledgerSection){
+    /* first render — build skeleton, hide ghost */
+    var ghost=out.querySelector('.ghost-ledger');
+    if(ghost)ghost.style.display='none';
 
-  h+='<table class="ledger" aria-label="City payment ledger">'
-    +'<thead><tr>'
-    +'<th>Agent</th>'
-    +'<th>Service &amp; Reasoning</th>'
-    +'<th>Amount</th>'
-    +'<th class="status-cell">Status</th>'
-    +'<th>Receipt</th>'
-    +'</tr></thead>'
-    +'<tbody>';
+    out.innerHTML='';
 
-  if(!run.ledger.length){
-    h+='<tr><td colspan="5" class="muted" style="padding:20px 12px;text-align:center">No payments yet &mdash; workers being commissioned&hellip;</td></tr>';
-  }
-
-  for(var j=0;j<run.ledger.length;j++){var x=run.ledger[j];
-    var isSettled=x.status==='settled';
-    var rowClass=isSettled?' class="row-settled"':'';
-    h+='<tr'+rowClass+'>'
-      +'<td class="agent-col">'
-      +'<div class="role-name">'+esc(x.role)+'</div>'
-      +'<div class="addr-sub">'+esc(shrink(x.agent))+'</div>'
-      +'</td>'
-      +'<td class="svc-cell">'
-      +esc(x.service||'—')
-      +(x.reasoning?'<div class="reason-line"><em>[reason]</em> '+esc(x.reasoning)+'</div>':'')
-      +(x.credit!=null?'<div class="reason-line">credit '+esc(x.credit)+' &middot; '+esc(x.tier||'')+'</div>':'')
-      +(x.data?'<div class="reason-line">received: '+esc(x.data)+'</div>':'')
-      +'</td>'
-      +'<td class="amt-cell'+(x.amount?'':' muted')+'">'+esc(fmtUSDC(x.amount))+'</td>'
-      +'<td class="status-cell">'+(isSettled?'<span class="stamp-settled">Settled</span>':badge(x.status))+'</td>'
-      +'<td>'+(rcpt(run,x)||'<span class="muted">—</span>')+'</td>'
-      +'</tr>';
-  }
-  h+='</tbody></table></div>';
-
-  // ── AGENT CARDS ──
-  h+='<div class="agents-section"><div class="agents">';
-
-  var mayorBudgetStr=($('#m-budget').textContent||'').replace(' USDC','');
-  var mayorBudgetNum=parseFloat(mayorBudgetStr)||5;
-  var mayorSpendPct=Math.min(100,Math.round(spend/1e6/mayorBudgetNum*100));
-
-  h+='<div class="acard mayor">'
-    +'<div><div class="role">Mayor</div><div class="svc">'+(isGrant?'your wallet':'demo treasury')+'</div></div>'
-    +'<div class="ar"><span class="meta">'+esc(shrink(isGrant&&run.grantDelegator?run.grantDelegator:(info&&info.treasury)))+'</span></div>'
-    +'<div class="cap">'
-    +'<span class="budget-label">master ≤ '+esc($('#m-budget').textContent||'')+'</span>'
-    +'<div class="budget-bar" role="progressbar" aria-valuenow="'+mayorSpendPct+'" aria-valuemax="100">'
-    +'<div class="budget-bar-fill" style="width:'+mayorSpendPct+'%"></div>'
-    +'</div></div>'
-    +'<div class="agent-status-col"><span class="badge '+(isGrant?'ok':'warn')+'">'+(isGrant?'7715 grant':'treasury')+'</span></div>'
-    +'</div>';
-
-  for(var i=0;i<run.ledger.length;i++){var e=run.ledger[i];
-    var sub=Number(e.subCap||0);
-    var amt=Number(e.amount||0);
-    var pct=sub>0?Math.min(100,Math.round(amt/sub*100)):0;
-    var isFull=pct>=90;
-    h+='<div class="acard">'
-      +'<div><div class="role">'+esc(e.role)+'</div><div class="svc">'+esc(e.service||'service')+'</div></div>'
-      +'<div class="ar">'
-      +'<span class="meta">'+esc(shrink(e.agent))+'</span>'
-      +(e.reasoning?'<span class="reason"><em>[reason]</em> '+esc(e.reasoning)+'</span>':'')
-      +(e.credit!=null?'<span class="meta">credit '+esc(e.credit)+' &middot; '+esc(e.tier||'')+'</span>':'')
-      +(e.data?'<span class="meta">received: '+esc(e.data)+'</span>':'')
-      +'</div>'
-      +'<div class="cap">'
-      +'<span class="budget-label">'+esc(fmtUSDC(e.amount))+' / '+esc(fmtUSDC(e.subCap))+'</span>'
-      +'<div class="budget-bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemax="100">'
-      +'<div class="budget-bar-fill'+(isFull?' full':'')+'" style="width:'+pct+'%"></div>'
+    /* City Ledger */
+    ledgerSection=document.createElement('div');
+    ledgerSection.className='ledger-section';
+    ledgerSection.innerHTML=
+      '<div class="ledger-masthead"><div class="lm-inner">'
+      +'<span class="lm-name">City Ledger &mdash; Transaction Log</span>'
+      +'<span class="lm-vol" id="ledger-vol">Settled: —</span>'
       +'</div></div>'
-      +'<div class="agent-status-col">'+badge(e.status)+(rcpt(run,e)?'<br>'+rcpt(run,e):'')+'</div>'
-      +'</div>';
+      +'<table class="ledger" aria-label="City payment ledger">'
+      +'<thead><tr>'
+      +'<th>Agent</th><th>Service &amp; Reasoning</th><th>Amount</th>'
+      +'<th class="status-cell">Status</th><th>Receipt</th>'
+      +'</tr></thead>'
+      +'<tbody id="ledger-body"></tbody>'
+      +'</table>';
+    out.appendChild(ledgerSection);
+
+    /* Agents section */
+    agentsSection=document.createElement('div');
+    agentsSection.className='agents-section';
+    agentsSection.innerHTML='<div class="agents" id="agents-body"></div>';
+    out.appendChild(agentsSection);
   }
-  h+='</div></div>';
+
+  /* update ledger volume label */
+  var volEl=out.querySelector('#ledger-vol');
+  if(volEl)volEl.textContent='Settled: '+fmtUSDC(spend);
+
+  /* Rainbow: targeted row updates with settle-flash */
+  var tbody=out.querySelector('#ledger-body');
+  if(tbody){
+    if(!run.ledger.length){
+      if(!tbody.querySelector('[data-empty]')){
+        var emptyTr=document.createElement('tr');
+        emptyTr.setAttribute('data-empty','1');
+        emptyTr.innerHTML='<td colspan="5" class="muted" style="padding:20px 12px;text-align:center">No payments yet &mdash; workers being commissioned&hellip;</td>';
+        tbody.appendChild(emptyTr);
+      }
+    } else {
+      var empty=tbody.querySelector('[data-empty]');
+      if(empty)tbody.removeChild(empty);
+      run.ledger.forEach(function(e){
+        updateOrCreateRow(tbody,run,e,!seenRows[rowKey(e)]);
+        seenRows[rowKey(e)]=true;
+      });
+    }
+  }
+
+  /* Agent cards */
+  var abody=out.querySelector('#agents-body');
+  if(abody){
+    var mayorBudgetStr=($('#m-budget').textContent||'').replace(' USDC','');
+    var mayorBudgetNum=parseFloat(mayorBudgetStr)||5;
+    var mayorSpendPct=Math.min(100,Math.round(spend/1e6/mayorBudgetNum*100));
+
+    /* Mayor card — always rebuild (tiny, no flash) */
+    var mayorKey='__mayor__';
+    var mayorEl=abody.querySelector('[data-rk="'+mayorKey+'"]');
+    var mayorHtml=
+      '<div><div class="role">Mayor</div><div class="svc">'+(isGrant?'your wallet':'demo treasury')+'</div></div>'
+      +'<div class="ar"><span class="meta">'+esc(shrink(isGrant&&run.grantDelegator?run.grantDelegator:(info&&info.treasury)))+'</span></div>'
+      +'<div class="cap">'
+      +'<span class="budget-label">master ≤ '+esc($('#m-budget').textContent||'')+'</span>'
+      +'<div class="budget-bar" role="progressbar" aria-valuenow="'+mayorSpendPct+'" aria-valuemax="100">'
+      +'<div class="budget-bar-fill" style="width:'+mayorSpendPct+'%"></div>'
+      +'</div></div>'
+      +'<div class="agent-status-col"><span class="badge '+(isGrant?'ok':'warn')+'">'+(isGrant?'7715 grant':'treasury')+'</span></div>';
+    if(!mayorEl){
+      var mDiv=document.createElement('div');
+      mDiv.className='acard mayor';
+      mDiv.setAttribute('data-rk',mayorKey);
+      mDiv.innerHTML=mayorHtml;
+      abody.insertBefore(mDiv,abody.firstChild);
+    } else {
+      mayorEl.innerHTML=mayorHtml;
+    }
+
+    /* Worker cards — add new ones, update existing */
+    var newCards=[];
+    run.ledger.forEach(function(e){
+      var wkey='worker:'+rowKey(e);
+      var existing=abody.querySelector('[data-rk="'+CSS.escape(wkey)+'"]');
+      var sub=Number(e.subCap||0);
+      var amt=Number(e.amount||0);
+      var pct=sub>0?Math.min(100,Math.round(amt/sub*100)):0;
+      var isFull=pct>=90;
+      var innerHtml=
+        '<div><div class="role">'+esc(e.role)+'</div><div class="svc">'+esc(e.service||'service')+'</div></div>'
+        +'<div class="ar">'
+        +'<span class="meta">'+esc(shrink(e.agent))+'</span>'
+        +(e.reasoning?'<span class="reason"><em>[reason]</em> '+esc(e.reasoning)+'</span>':'')
+        +(e.credit!=null?'<span class="meta">credit '+esc(e.credit)+' &middot; '+esc(e.tier||'')+'</span>':'')
+        +(e.data?'<span class="meta">received: '+esc(e.data)+'</span>':'')
+        +'</div>'
+        +'<div class="cap">'
+        +'<span class="budget-label">'+esc(fmtUSDC(e.amount))+' / '+esc(fmtUSDC(e.subCap))+'</span>'
+        +'<div class="budget-bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemax="100">'
+        +'<div class="budget-bar-fill'+(isFull?' full':'')+'" style="width:'+pct+'%"></div>'
+        +'</div></div>'
+        +'<div class="agent-status-col">'+badge(e.status)+(rcpt(run,e)?'<br>'+rcpt(run,e):'')+'</div>';
+      if(existing){
+        existing.innerHTML=innerHtml;
+      } else {
+        var wDiv=document.createElement('div');
+        wDiv.className='acard';
+        wDiv.setAttribute('data-rk',wkey);
+        wDiv.innerHTML=innerHtml;
+        wDiv.classList.add('acard-enter');
+        abody.appendChild(wDiv);
+        newCards.push(wDiv);
+      }
+    });
+
+    /* Framer stagger on newly added cards */
+    if(newCards.length){
+      newCards.forEach(function(el,i){
+        var delay=Math.min(i*70,350);
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            el.style.transitionDelay=delay+'ms';
+            el.classList.remove('acard-enter');
+            el.classList.add('acard-in');
+            el.addEventListener('transitionend',function once(){
+              el.style.transitionDelay='';
+              el.removeEventListener('transitionend',once);
+            });
+          });
+        });
+      });
+    }
+  }
 
   if(run.status==='done'||run.status==='failed'){
-    h+='<div class="summary '+(run.status==='done'?'ok':'bad')+'">'
-      +'<span class="dot '+(run.status==='done'?'ok':'bad')+'"></span>'
-      +esc(run.result||run.status)+'</div>';
+    var existSum=out.querySelector('.summary');
+    if(!existSum){
+      var sumDiv=document.createElement('div');
+      sumDiv.className='summary '+(run.status==='done'?'ok':'bad');
+      sumDiv.innerHTML='<span class="dot '+(run.status==='done'?'ok':'bad')+'"></span>'
+        +esc(run.result||run.status);
+      out.appendChild(sumDiv);
+    }
   }
-
-  $('#out').innerHTML=h;
 }
 
-/* ── poll ────────────────────────────────────────── */
+/* ── poll ────────────────────────────────────────────────────── */
 async function poll(id){
   polling=true;
   var deadline=Date.now()+8*60000;
@@ -726,20 +1089,22 @@ async function poll(id){
     await new Promise(function(r){setTimeout(r,2000);});
   }
   polling=false;
-  $('#dispatch').disabled=revoked;
+  busy(revoked);
 }
 
-/* ── dispatch progress ───────────────────────────── */
+/* ── dispatch progress ───────────────────────────────────────── */
 function showDispatchState(){
   $('#dispatch-state').classList.add('visible');
   var bar=$('#dispatch-bar');
   bar.style.animation='none';bar.offsetHeight;bar.style.animation='';
+  startLogStream();
 }
 function hideDispatchState(){
+  stopLogStream();
   $('#dispatch-state').classList.remove('visible');
 }
 
-/* ── approve flow ────────────────────────────────── */
+/* ── approve flow ────────────────────────────────────────────── */
 function showApprove(){
   if(revoked)return;
   $('#dispatch').style.display='none';
@@ -760,11 +1125,12 @@ function showApprove(){
 
 async function dispatch(){
   $('#approveWrap').innerHTML='';$('#dispatch').style.display='';
-  $('#dispatch').disabled=true;
-  seenTx=[];
+  busy(true);
+  seenTx=[];seenRows={};
+  _lastSpend=0;
   var goal=$('#goal').value.trim()||'Produce a market brief on ETH';
 
-  // Reset ticker
+  /* Reset ticker */
   var inner=$('#ticker-inner');
   inner.innerHTML=
     '<span class="ticker-item">DISPATCHING &middot; LIVE &middot; hiring workers</span>'
@@ -778,7 +1144,9 @@ async function dispatch(){
 
   showDispatchState();
   $('#spend-counter').classList.remove('visible');
-  $('#out').innerHTML='<div style="border:1px solid var(--dim-line);padding:52px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;background:var(--surface)">'+' <svg width=40 height=40 viewBox="0 0 40 40" aria-hidden=true style="display:block"><circle cx=20 cy=20 r=14 fill=none stroke="var(--dim-line)" stroke-width=1.5 /><circle cx=20 cy=20 r=14 fill=none stroke="var(--signal)" stroke-width=1.5 stroke-dasharray=87.96 stroke-dashoffset=87.96 stroke-linecap=butt style="transform-origin:center;animation:spin-arc 1.3s ease-in-out infinite alternate"/><line x1=20 y1=6 x2=20 y2=10 stroke="var(--dim-line)" stroke-width=1 /><line x1=20 y1=30 x2=20 y2=34 stroke="var(--dim-line)" stroke-width=1 /><line x1=6 y1=20 x2=10 y2=20 stroke="var(--dim-line)" stroke-width=1 /><line x1=30 y1=20 x2=34 y2=20 stroke="var(--dim-line)" stroke-width=1 /></svg>'
+
+  /* Clear #out and show arc loader (ghost ledger already hidden on first render) */
+  $('#out').innerHTML='<div style="border:1px solid var(--dim-line);padding:52px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;background:var(--surface)"><svg width=40 height=40 viewBox="0 0 40 40" aria-hidden=true style="display:block"><circle cx=20 cy=20 r=14 fill=none stroke="var(--dim-line)" stroke-width=1.5 /><circle cx=20 cy=20 r=14 fill=none stroke="var(--signal)" stroke-width=1.5 stroke-dasharray=87.96 stroke-dashoffset=87.96 stroke-linecap=butt style="transform-origin:center;animation:spin-arc 1.3s ease-in-out infinite alternate"/><line x1=20 y1=6 x2=20 y2=10 stroke="var(--dim-line)" stroke-width=1 /><line x1=20 y1=30 x2=20 y2=34 stroke="var(--dim-line)" stroke-width=1 /><line x1=6 y1=20 x2=10 y2=20 stroke="var(--dim-line)" stroke-width=1 /><line x1=30 y1=20 x2=34 y2=20 stroke="var(--dim-line)" stroke-width=1 /></svg>'
     +'<div style="font-family:var(--display);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink)">Commissioning the city&hellip;</div>'
     +'<div style="font-family:var(--body);font-size:13px;color:var(--ink-3)">Hiring workers and granting capped sub-budgets. Payments will settle on-chain.</div></div>';
 
@@ -788,22 +1156,51 @@ async function dispatch(){
     if(!r.ok||!j.id){
       hideDispatchState();
       $('#out').innerHTML='<div class="summary bad"><span class="dot bad"></span>'+esc(j.error||('HTTP '+r.status))+'</div>';
-      $('#dispatch').disabled=revoked;return;
+      busy(revoked);return;
     }
     poll(j.id);
   }catch(e){
     hideDispatchState();
     $('#out').innerHTML='<div class="summary bad"><span class="dot bad"></span>'+esc(e.message)+'</div>';
-    $('#dispatch').disabled=revoked;
+    busy(revoked);
   }
 }
 
 $('#dispatch').onclick=showApprove;
+
+/* One-click demo: prefill a goal if blank and dispatch immediately (skips the approve gate) */
+var _rd=$('#rundemo');
+if(_rd)_rd.onclick=function(){
+  if(revoked)return;
+  if(info&&info.mode!=='live')return;
+  var g=$('#goal');if(g&&!g.value.trim())g.value='Produce a market brief on ETH';
+  dispatch();
+};
+
 $('#revoke').onclick=async function(){
   if(!confirm('Revoke the whole city\\'s authority?'))return;
   await fetch('/revoke',{method:'POST'});
   loadPolicy();
 };
+
+/* ── Railway: cursor depth-pool ──────────────────────────────── */
+(function(){
+  var reduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduced)return;
+  var ticking=false;
+  document.addEventListener('mousemove',function(ev){
+    if(ticking)return;
+    ticking=true;
+    requestAnimationFrame(function(){
+      document.documentElement.style.setProperty('--mx',ev.clientX+'px');
+      document.documentElement.style.setProperty('--my',ev.clientY+'px');
+      ticking=false;
+    });
+  },{passive:true});
+})();
+
+/* Pre-fill the goal so the field is never blank for a judge */
+(function(){var g=$('#goal');if(g&&!g.value)g.value='Produce a market brief on ETH';})();
 
 loadInfo();loadPolicy();loadGrant();
 </script>
