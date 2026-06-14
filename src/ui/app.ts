@@ -36,6 +36,84 @@ function ghostLedgerHTML(): string {
     `</div></div></div>`;
 }
 
+/**
+ * Live city map — the agent economy as a blueprint schematic. Mayor (treasury)
+ * re-delegates capped budgets down to worker agents that pay x402 services.
+ * JS toggles state classes per worker as the run progresses: authority + payment
+ * "flow" along the edges (dash + traveling pulse), nodes light up on settlement.
+ */
+function cityMap(): string {
+  const workers = [
+    { i: 0, cx: 120, role: "Research", svc: "Market-Data · x402", mEdge: "M285 136 Q180 150 120 170" },
+    { i: 1, cx: 500, role: "Analyst", svc: "Sentiment · x402", mEdge: "M335 136 Q440 150 500 170" },
+  ];
+  const parts: string[] = [];
+  for (const w of workers) {
+    const nx = w.cx - 75;
+    parts.push(
+      `<g class="city-deleg" id="city-deleg${w.i}">` +
+        `<path class="cm-edge cm-flow" id="city-deleg${w.i}-path" d="${w.mEdge}"/>` +
+        `<circle class="cm-pulse" r="3.6"><animateMotion dur="1.2s" repeatCount="indefinite" rotate="auto"><mpath href="#city-deleg${w.i}-path"/></animateMotion></circle>` +
+        `</g>`,
+      `<g class="city-pay" id="city-pay${w.i}">` +
+        `<path class="cm-edge cm-flow" id="city-pay${w.i}-path" d="M${w.cx} 226 L${w.cx} 264"/>` +
+        `<circle class="cm-pulse" r="3.6"><animateMotion dur="1s" repeatCount="indefinite" rotate="auto"><mpath href="#city-pay${w.i}-path"/></animateMotion></circle>` +
+        `</g>`,
+      `<g class="city-w" id="city-w${w.i}">` +
+        `<rect class="cm-node" x="${nx}" y="170" width="150" height="56"/>` +
+        `<rect class="cm-bar" x="${nx}" y="170" width="150" height="13"/>` +
+        `<text class="cm-sub" x="${w.cx}" y="179.5" text-anchor="middle">${w.role.toUpperCase()} AGENT</text>` +
+        `<text class="cm-label" x="${w.cx}" y="201" text-anchor="middle">${w.role}</text>` +
+        `<text class="cm-sub" x="${w.cx}" y="216" text-anchor="middle">x402 · capped sub-budget</text>` +
+        `</g>`,
+      `<g class="city-svc" id="city-svc${w.i}">` +
+        `<rect class="cm-node" x="${nx}" y="264" width="150" height="40"/>` +
+        `<rect class="cm-bar" x="${nx}" y="264" width="150" height="12"/>` +
+        `<text class="cm-sub" x="${w.cx}" y="273" text-anchor="middle">X402 SERVICE</text>` +
+        `<text class="cm-label" x="${w.cx}" y="293" text-anchor="middle" style="font-size:10px">${w.svc}</text>` +
+        `</g>`,
+    );
+  }
+  return `<svg id="city-map" viewBox="0 0 620 314" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Live city map: the Mayor treasury re-delegates capped budgets to worker agents that pay x402 services">
+    <style>
+      .cm-edge{fill:none;stroke:#2A5080;stroke-width:1.2}
+      .cm-flow{stroke-dasharray:5 5}
+      @keyframes cmflow{to{stroke-dashoffset:-20}}
+      .city-deleg.flowing .cm-flow,.city-pay.flowing .cm-flow{stroke:#E05C1A;animation:cmflow .7s linear infinite}
+      #city-map.running #city-mayoredge{stroke:#E05C1A;animation:cmflow .9s linear infinite}
+      .cm-pulse{fill:#E05C1A;opacity:0}
+      .city-deleg.flowing .cm-pulse,.city-pay.flowing .cm-pulse{opacity:1}
+      .cm-node{fill:#0F2540;stroke:#2A5080;stroke-width:1;transition:stroke .3s,filter .3s}
+      .cm-bar{fill:#132B4A}
+      .cm-label{font-family:"Barlow Condensed","Arial Narrow",sans-serif;font-weight:700;font-size:12px;fill:#C8D8F0;letter-spacing:.05em;text-transform:uppercase}
+      .cm-sub{font-family:"JetBrains Mono",monospace;font-size:8px;fill:#7A9BC4;font-variant-numeric:tabular-nums}
+      .cm-mayor .cm-node{stroke:#E05C1A;stroke-width:1.5}
+      .city-w.active .cm-node{stroke:#5098DC;stroke-width:1.6}
+      .city-w.settled .cm-node{stroke:#E05C1A;stroke-width:1.7;filter:drop-shadow(0 0 6px rgba(224,92,26,.55))}
+      .city-w.blocked .cm-node{stroke:#D44040;stroke-width:1.6}
+      .city-svc.settled .cm-node{stroke:#2DC98A;stroke-width:1.4}
+      #city-map.revoked{opacity:.4}
+      #city-map.revoked .cm-node{stroke:#D44040!important}
+      @media(prefers-reduced-motion:reduce){.cm-flow,.cm-pulse,#city-mayoredge{animation:none!important}}
+    </style>
+    <g class="cm-mayor">
+      <rect class="cm-node" x="250" y="14" width="120" height="46"/>
+      <rect class="cm-bar" x="250" y="14" width="120" height="13"/>
+      <text class="cm-sub" x="310" y="23.5" text-anchor="middle" style="fill:#E05C1A">MAYOR · TREASURY</text>
+      <text class="cm-label" x="310" y="42" text-anchor="middle">Your Budget</text>
+      <text class="cm-sub" x="310" y="53" text-anchor="middle">ERC-7715 ≤ 5 USDC</text>
+    </g>
+    <path class="cm-edge cm-flow" id="city-mayoredge" d="M310 60 L310 96"/>
+    <g id="city-manager">
+      <rect class="cm-node" x="250" y="96" width="120" height="40"/>
+      <rect class="cm-bar" x="250" y="96" width="120" height="13"/>
+      <text class="cm-sub" x="310" y="105.5" text-anchor="middle" style="fill:#C8D8F0">MANAGER</text>
+      <text class="cm-sub" x="310" y="125" text-anchor="middle">RE-DELEGATES (A2A)</text>
+    </g>
+    ${parts.join("")}
+  </svg>`;
+}
+
 export const APP_HTML = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
@@ -65,6 +143,8 @@ nav .container{
   text-transform:uppercase;color:var(--ink-3);
 }
 .banner{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.nav-actions{display:flex;align-items:center;gap:8px;flex:none}
+#mm-connect.mm-on{border-color:var(--ok);color:var(--ok);box-shadow:0 0 14px rgba(45,201,138,.25)}
 
 /* ── ticker tape ──────────────────────────────────── */
 .ticker-strip{
@@ -178,6 +258,30 @@ textarea#goal:disabled{opacity:.4}
 .form-actions{padding:10px 14px;display:flex;gap:8px}
 .form-actions .btn{flex:1;font-size:11px;padding:9px 10px}
 
+/* auto-commission toggle */
+.auto-toggle{
+  display:flex;align-items:flex-start;gap:7px;
+  padding:0 14px 12px;cursor:pointer;
+  font-family:var(--mono);font-size:10px;color:var(--ink-2);
+  letter-spacing:.02em;line-height:1.4;
+}
+.auto-toggle input{accent-color:var(--signal);margin-top:1px;flex:none}
+
+/* City Hall — per-agent lifetime rows */
+.ch-agent{
+  display:flex;flex-direction:column;gap:1px;
+  padding:8px 14px;border-bottom:1px solid var(--dim-line);
+}
+.ch-agent:last-child{border-bottom:0}
+.ch-role{
+  font-family:var(--display);font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;color:var(--ink);
+}
+.ch-meta{
+  font-family:var(--mono);font-size:10px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;
+}
+
 /* approve block — dim-line budget split */
 .approve-block{
   border-top:1px solid var(--dim-line);
@@ -199,6 +303,13 @@ textarea#goal:disabled{opacity:.4}
 
 /* ── right: activity area ─────────────────────────── */
 .activity{padding:16px 20px 64px}
+
+/* ── live city map ── */
+.city-map-wrap{border:1px solid var(--dim-line);background:var(--bg);margin-bottom:14px}
+.cmw-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 14px;border-bottom:1px solid var(--dim-line);background:var(--bg-2)}
+.cmw-title{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+.cmw-legend{font-family:var(--mono);font-size:9px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.city-map-wrap svg{display:block;width:100%;height:auto;padding:14px 16px;max-height:340px}
 
 /* Activity masthead */
 .activity-masthead{
@@ -552,7 +663,10 @@ nav,.ticker-strip,.grant-bar{animation:fadeUp .5s ease both}
     <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Live</span>
   </a>
   <div class="banner" id="banner"></div>
-  <button class="btn btn-danger" id="revoke">Revoke the city</button>
+  <div class="nav-actions">
+    <button class="btn" id="mm-connect">&#11042;&nbsp; Connect MetaMask</button>
+    <button class="btn btn-danger" id="revoke">Revoke the city</button>
+  </div>
 </div></nav>
 
 <!-- Ticker tape: live payment feed -->
@@ -607,16 +721,37 @@ nav,.ticker-strip,.grant-bar{animation:fadeUp .5s ease both}
       <span class="form-label">Goal</span>
       <textarea id="goal" placeholder="e.g. Produce a market brief on ETH"></textarea>
       <div class="form-actions">
-        <button class="btn btn-primary cta-glow" id="rundemo">&#9654;&nbsp; Run the demo</button>
+        <button class="btn btn-primary cta-glow" id="rundemo">&#9654;&nbsp; Commission work</button>
         <button class="btn" id="dispatch">Dispatch &rarr;</button>
       </div>
+      <label class="auto-toggle" for="autorun"><input type="checkbox" id="autorun"/> Keep the city working &mdash; auto-commission every 3&thinsp;min <span class="dim">(real on-chain txns)</span></label>
       <div id="approveWrap"></div>
+    </div>
+
+    <!-- City Hall — cross-run ledger of record (persistent across runs) -->
+    <div class="panel-section" id="cityhall">
+      <div class="panel-head">City Hall &mdash; Ledger of Record</div>
+      <div class="panel-body">
+        <div class="brow"><span class="k">Tasks commissioned</span><span class="v" id="ch-runs">0</span></div>
+        <div class="brow"><span class="k">Payments settled</span><span class="v" id="ch-pay">0</span></div>
+        <div class="brow"><span class="k">Total settled</span><span class="v" id="ch-total" style="color:var(--signal)">&mdash;</span></div>
+        <div id="ch-agents"></div>
+      </div>
     </div>
 
   </aside>
 
   <!-- Right: activity column -->
   <section class="activity">
+
+    <!-- Live city map — the economy, visualized -->
+    <div class="city-map-wrap">
+      <div class="cmw-head">
+        <span class="cmw-title">The City &mdash; Live Map</span>
+        <span class="cmw-legend">authority flows down &middot; payments flow to services</span>
+      </div>
+      ${cityMap()}
+    </div>
 
     <!-- Engineering-drawing masthead -->
     <div class="activity-masthead">
@@ -800,6 +935,39 @@ async function loadGrant(){
     $('#m-root').textContent='demo treasury';
   }
 }
+
+/* ── City Hall — cross-run ledger of record (persistent across runs) ── */
+async function loadStats(){
+  var s;try{s=await (await fetch('/city/stats')).json();}catch(e){return;}
+  if(!s)return;
+  var r=$('#ch-runs');if(r)r.textContent=s.runs||0;
+  var p=$('#ch-pay');if(p)p.textContent=s.payments||0;
+  var t=$('#ch-total');if(t)t.textContent=fmtUSDC(s.totalSettled);
+  var box=$('#ch-agents');
+  if(box){
+    var h='';
+    (s.agents||[]).forEach(function(a){
+      h+='<div class="ch-agent"><span class="ch-role">'+esc(a.role)+'</span>'
+        +'<span class="ch-meta">'+esc(a.settled)+'/'+esc(a.jobs)+' paid &middot; credit '+esc(a.credit)+(a.tier?' &middot; '+esc(a.tier):'')+'</span></div>';
+    });
+    box.innerHTML=h;
+  }
+}
+
+/* ── Auto-commission: keep the city working on a timer (real on-chain txns) ── */
+var _autoTimer=null;
+function setAuto(on){
+  if(_autoTimer){clearInterval(_autoTimer);_autoTimer=null;}
+  if(on){
+    _autoTimer=setInterval(function(){
+      if(!polling&&!revoked&&info&&info.mode==='live'){
+        var g=$('#goal');if(g&&!g.value.trim())g.value='Produce a market brief on ETH';
+        dispatch();
+      }
+    },180000);
+  }
+}
+
 async function loadPolicy(){
   var p=await (await fetch('/policy')).json();
   $('#m-budget').textContent=fmtUSDC(p.maxPerDay);
@@ -898,12 +1066,45 @@ function updateOrCreateRow(tbody,run,e){
   tbody.appendChild(tr);
 }
 
+/* ── live city map — toggle node/edge state per worker as the run progresses ── */
+function cmReset(){
+  var m=$('#city-map');if(!m)return;
+  m.classList.remove('running','revoked');
+  for(var i=0;i<2;i++){
+    var n=$('#city-w'+i),s=$('#city-svc'+i),d=$('#city-deleg'+i),p=$('#city-pay'+i);
+    if(n)n.classList.remove('active','settled','blocked');
+    if(s)s.classList.remove('settled');
+    if(d)d.classList.remove('flowing');
+    if(p)p.classList.remove('flowing');
+  }
+}
+function updateCityMap(run){
+  var m=$('#city-map');if(!m)return;
+  m.classList.add('running');
+  for(var i=0;i<run.ledger.length&&i<2;i++){
+    var e=run.ledger[i];
+    var n=$('#city-w'+i),s=$('#city-svc'+i),d=$('#city-deleg'+i),p=$('#city-pay'+i);
+    if(!n)continue;
+    n.classList.remove('active','settled','blocked');
+    if(s)s.classList.remove('settled');
+    if(d)d.classList.remove('flowing');
+    if(p)p.classList.remove('flowing');
+    var st=e.status;
+    if(st==='hiring'){n.classList.add('active');if(d)d.classList.add('flowing');}
+    else if(st==='paying'){n.classList.add('active');if(d)d.classList.add('flowing');if(p)p.classList.add('flowing');}
+    else if(st==='settled'){n.classList.add('settled');if(s)s.classList.add('settled');}
+    else if(st==='blocked'||st==='failed'){n.classList.add('blocked');}
+  }
+}
+
 /* ── render ──────────────────────────────────────────────────── */
 function render(run){
   $('#runbadge').innerHTML=badge(run.status==='done'?'settled':run.status==='failed'?'failed':run.status||'run');
 
   var isGrant=run.authorityRoot==='grant';
   var spend=calcSpend(run.ledger);
+
+  updateCityMap(run);
 
   /* Stripe animated counter */
   var sc=$('#spend-counter');
@@ -1100,6 +1301,7 @@ async function poll(id){
   }
   polling=false;
   busy(revoked);
+  loadStats();
 }
 
 /* ── dispatch progress ───────────────────────────────────────── */
@@ -1138,6 +1340,7 @@ async function dispatch(){
   busy(true);
   seenTx=[];seenRows={};
   _lastSpend=0;
+  cmReset();
   var goal=$('#goal').value.trim()||'Produce a market brief on ETH';
 
   /* Reset ticker */
@@ -1191,11 +1394,52 @@ $('#revoke').onclick=async function(){
   if(!confirm('Revoke the whole city\\'s authority?'))return;
   await fetch('/revoke',{method:'POST'});
   loadPolicy();
+  var cm=$('#city-map');if(cm)cm.classList.add('revoked');
 };
+
+/* ── MetaMask: connect + in-page ERC-7715 grant (the real Advanced Permissions popup) ── */
+var mmAccount=null,mmCfg=null;
+function setGrantBar(html,bad){var g=$('#grantcta');if(g){g.innerHTML=html;g.style.color=bad?'var(--bad)':'';}}
+async function mmLoadCfg(){try{mmCfg=await (await fetch('/city/config')).json();}catch(e){mmCfg=null;}}
+async function mmConnect(){
+  if(!window.ethereum){setGrantBar('MetaMask not detected — install it (Flask for the ERC-7715 grant), or stage one with npm run grant:dev.',true);return false;}
+  try{
+    var a=await window.ethereum.request({method:'eth_requestAccounts'});
+    mmAccount=a&&a[0];
+    var btn=$('#mm-connect');if(btn){btn.innerHTML='&#11042;&nbsp; '+esc(shrink(mmAccount));btn.classList.add('mm-on');}
+    return true;
+  }catch(e){setGrantBar('Connect failed: '+esc(e.message||e),true);return false;}
+}
+async function mmGrant(){
+  if(!mmAccount){var ok=await mmConnect();if(!ok)return;}
+  if(!mmCfg)await mmLoadCfg();
+  if(!mmCfg||mmCfg.error){setGrantBar('City config unavailable (live mode required).',true);return;}
+  if(!window.ethereum){setGrantBar('No wallet provider.',true);return;}
+  setGrantBar('Requesting ERC-7715 permission — approve in MetaMask…');
+  var periodAmount='0x'+(5n*(10n**6n)).toString(16);
+  var expiry=Math.floor(Date.now()/1000)+7*86400;
+  var req={chainId:'0x'+Number(mmCfg.chainId).toString(16),to:mmCfg.agent,permission:{type:'erc20-token-periodic',data:{tokenAddress:mmCfg.usdc,periodAmount:periodAmount,periodDuration:86400,justification:'Agent City may spend ≤5 USDC/day on your behalf (revocable).'}},rules:[{type:'expiry',data:{timestamp:expiry}}]};
+  try{
+    var granted=await window.ethereum.request({method:'wallet_requestExecutionPermissions',params:[req]});
+    var r=await fetch('/city/grant',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({granted:granted,account:mmAccount})});
+    var v=await r.json();
+    if(!r.ok||!v.ok){setGrantBar('MetaMask granted it, but the treasury rejected it: '+esc(v.error||('HTTP '+r.status)),true);return;}
+    await loadGrant();
+  }catch(e){
+    var msg=(e&&e.message)||String(e);
+    if(/METHOD_NOT_FOUND|not found|unsupport/i.test(msg)){
+      setGrantBar('Wallet connected — but the ERC-7715 popup needs MetaMask Flask. Use Flask, or stage it with npm run grant:dev.',true);
+    }else{setGrantBar('Authorization failed: '+esc(msg),true);}
+  }
+}
+var _mmc=$('#mm-connect');if(_mmc)_mmc.onclick=mmConnect;
+var _gc=$('#grantcta');if(_gc)_gc.onclick=function(ev){ev.preventDefault();mmGrant();};
+var _ar=$('#autorun');if(_ar)_ar.onchange=function(){setAuto(_ar.checked);};
+mmLoadCfg();
 
 /* Pre-fill the goal so the field is never blank for a judge */
 (function(){var g=$('#goal');if(g&&!g.value)g.value='Produce a market brief on ETH';})();
 
-loadInfo();loadPolicy();loadGrant();
+loadInfo();loadPolicy();loadGrant();loadStats();
 </script>
 </body></html>`;

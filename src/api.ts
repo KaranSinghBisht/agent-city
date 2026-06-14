@@ -246,6 +246,53 @@ export function createApi(deps: ApiDeps): Hono {
     return c.json(run);
   });
 
+  // City Hall — cross-run aggregate (persistent across every run this session).
+  // The workers + reputation persist in memory, so this is a genuine ledger of record.
+  app.get("/city/stats", (c) => {
+    type Agg = {
+      role: string;
+      agent: string;
+      jobs: number;
+      settled: number;
+      credit: number;
+      tier: string;
+    };
+    const byRole = new Map<string, Agg>();
+    let settledRuns = 0;
+    let payments = 0;
+    let totalSettled = 0n;
+    for (const run of cityRuns.values()) {
+      if (run.status === "done") settledRuns += 1;
+      for (const e of run.ledger) {
+        const cur: Agg = byRole.get(e.role) ?? {
+          role: e.role,
+          agent: e.agent === "0x" ? "" : e.agent,
+          jobs: 0,
+          settled: 0,
+          credit: 0,
+          tier: "",
+        };
+        cur.jobs += 1;
+        if (e.settled) {
+          cur.settled += 1;
+          payments += 1;
+          totalSettled += BigInt(e.amount || "0");
+        }
+        if (e.agent && e.agent !== "0x") cur.agent = e.agent;
+        if (typeof e.credit === "number") cur.credit = e.credit;
+        if (e.tier) cur.tier = e.tier;
+        byRole.set(e.role, cur);
+      }
+    }
+    return c.json({
+      runs: cityRuns.size,
+      settledRuns,
+      payments,
+      totalSettled: totalSettled.toString(),
+      agents: [...byRole.values()],
+    });
+  });
+
   app.get("/grant", (c) => c.html(GRANT_HTML));
   app.get("/city/config", async (c) => {
     const factory = deps.cityFactory;
