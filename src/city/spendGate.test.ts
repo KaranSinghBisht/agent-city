@@ -70,21 +70,21 @@ describe("buildSpendGate — Venice judgment", () => {
     expect(v.reason).toBe("irrelevant purchase");
   });
 
-  it("fails open to the deterministic floor on a Venice outage", async () => {
+  it("fails CLOSED (holds the spend) on a Venice outage", async () => {
     const gate = buildSpendGate(
       fake(() => {
         throw new Error("Venice down");
       }),
     );
     const v = await gate({ ...base, amount: 50000n, subCap: 500000n });
-    expect(v.approved).toBe(true);
-    expect(v.reason).toMatch(/deterministic policy/);
+    expect(v.approved).toBe(false);
+    expect(v.reason).toMatch(/fail-closed|held/);
   });
 
-  it("fails open when Venice returns unparseable output", async () => {
+  it("fails CLOSED when Venice returns unparseable output", async () => {
     const gate = buildSpendGate(fake(() => "I think yes, maybe?"));
     expect((await gate({ ...base, amount: 50000n, subCap: 500000n })).approved).toBe(
-      true,
+      false,
     );
   });
 });

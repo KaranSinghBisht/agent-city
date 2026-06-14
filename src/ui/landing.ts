@@ -523,8 +523,8 @@ footer .fl a:hover{color:var(--ink)}
 <header class="hero"><div class="container hero-grid">
   <div>
     <div class="hero-section-label reveal">MetaMask Smart Accounts &middot; 1Shot &middot; Venice AI</div>
-    <h1 class="reveal d1">AI agents that <em>hire</em> and <em>pay</em> each other &mdash; under hard on-chain caps.</h1>
-    <p class="lede reveal d2">Give one agent a budget. It hires specialists, hands each a narrower budget, and they pay for what they need &mdash; all settled on Base. The delegation <em>is</em> the cap.</p>
+    <h1 class="reveal d1">A <em>spending firewall</em> for AI agents.</h1>
+    <p class="lede reveal d2">Hand an autonomous agent a funded wallet without the fear. A private model must <em>approve</em> every payment before the money can move &mdash; and the budget is a MetaMask delegation it <em>physically cannot exceed</em>. Two locks: <em>whether</em>, and <em>how much</em>. Neither trusted; both enforced on-chain.</p>
     <div class="cta-row reveal d3">
       <a class="btn btn-primary btn-lg cta-glow" href="/app">Enter the city &rarr;</a>
       <a class="btn btn-lg" href="#proof">View on-chain proof</a>

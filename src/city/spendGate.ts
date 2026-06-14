@@ -7,8 +7,10 @@
  * so private cognition literally gates the trusted on-chain action.
  *
  * The deterministic guard is the hard floor (always enforced). Venice supplies
- * the private judgment on top. On a Venice outage the gate fails open to the
- * floor — a hiccup must never strand a within-policy spend — and says so plainly.
+ * the private judgment on top. The gate FAILS CLOSED: if Venice is unavailable or
+ * its reply can't be parsed, the spend is HELD (not approved) — because the whole
+ * thesis is that a private model's approval is a *precondition* for the money to
+ * move, not advisory garnish. No approval, no spend.
  */
 import { formatUnits } from "viem";
 
@@ -83,9 +85,11 @@ export function buildSpendGate(
     }
 
     if (!verdict) {
+      // Fail CLOSED: no readable private verdict ⇒ hold the spend. Private
+      // approval is a precondition for the on-chain action, not optional.
       return {
-        approved: true,
-        reason: "within cap · deterministic policy (Venice judgment unavailable)",
+        approved: false,
+        reason: "private Venice gate unavailable — spend held (fail-closed)",
       };
     }
     return verdict;

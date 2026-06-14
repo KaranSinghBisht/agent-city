@@ -178,10 +178,11 @@ async function hireAndPay(
         subCap: spec.subCap,
       });
     } catch {
-      // The gate must never crash a run; the on-chain cap is still enforced regardless.
+      // Fail CLOSED: a gate error holds the spend. Private approval is a
+      // precondition — we never fall through to "approved" on failure.
       verdict = {
-        approved: true,
-        reason: "policy check unavailable — on-chain cap still enforced",
+        approved: false,
+        reason: "policy gate error — spend held (fail-closed)",
       };
     }
     entry.gate = verdict;
