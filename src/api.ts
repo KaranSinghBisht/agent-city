@@ -18,7 +18,9 @@ import { randomUUID } from "node:crypto";
 import { runCity } from "./city/orchestrator.js";
 import type { CityBase } from "./city/live.js";
 import type { CityRun } from "./city/types.js";
+import { WebhookInbox } from "./city/webhookInbox.js";
 import { parseGrant, type ParsedGrant } from "./delegation/grantBridge.js";
+import { RelayerWebhookVerifier } from "./webhook.js";
 
 export interface DemoInfo {
   mode: "live" | "dry-run";
@@ -72,6 +74,9 @@ export function createApi(deps: ApiDeps): Hono {
   const runs = new Map<string, RunState>();
   const steward = new Steward(deps.reasoner, deps.policy, deps.executor);
   let revoked = false;
+  // Verified 1Shot webhook receiver: signature-checked status events feed a PUSH-first inbox.
+  const webhookInbox = new WebhookInbox();
+  const webhookVerifier = new RelayerWebhookVerifier();
   const app = new Hono();
 
   app.get("/", (c) => c.html(LANDING_HTML));
@@ -80,6 +85,32 @@ export function createApi(deps: ApiDeps): Hono {
   app.get("/info", (c) =>
     c.json(deps.info ?? { mode: "dry-run", network: "none" }),
   );
+
+  // 1Shot relayer webhook receiver — verify the Ed25519/JWKS signature, then cache the
+  // status PUSH-first for the orchestrator (settle() reads it before polling). The
+  // 1Shot track rewards sourcing status from signed webhooks.
+  app.post("/webhooks/1shot", async (c) => {
+    const body = await c.req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return c.json({ ok: false, error: "invalid body" }, 400);
+    }
+    const valid = await webhookVerifier
+      .verify(body as Record<string, unknown>)
+      .catch(() => false);
+    if (!valid) return c.json({ ok: false, error: "invalid signature" }, 401);
+    const { data } = body as {
+      data?: { id?: unknown; status?: unknown; hash?: unknown };
+    };
+    if (data && typeof data.id === "string" && typeof data.status === "number") {
+      webhookInbox.record(
+        data.id,
+        data.status,
+        typeof data.hash === "string" ? data.hash : undefined,
+      );
+    }
+    return c.json({ ok: true });
+  });
+  app.get("/webhooks", (c) => c.json(webhookInbox.stats()));
 
   app.get("/policy", (c) =>
     c.json({
@@ -196,6 +227,7 @@ export function createApi(deps: ApiDeps): Hono {
       {
         ...base.deps,
         grantChain: grant?.chain,
+        webhookInbox,
         onUpdate: () => undefined,
         isRevoked: () => revoked,
       },

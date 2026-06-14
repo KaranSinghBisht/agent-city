@@ -275,13 +275,13 @@ textarea#goal:disabled{opacity:.4}
 
 /* ── empty state ──────────────────────────────────── */
 .empty{
-  padding:28px 24px 20px;text-align:center;
+  padding:20px 24px 14px;text-align:center;
   border:1px solid var(--dim-line);
   border-bottom:0;
   background:var(--surface);
   position:relative;z-index:1;
 }
-.empty .glyph{margin:0 auto 12px}
+.empty .glyph{margin:0 auto 10px}
 .empty .msg{
   font-family:var(--display);font-size:16px;font-weight:700;
   text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2);
@@ -409,6 +409,10 @@ textarea#goal:disabled{opacity:.4}
 .reason-line em{
   font-style:normal;color:var(--ink-3);letter-spacing:.04em;
 }
+/* Venice spend-gate verdict — private cognition gating the on-chain action */
+.reason-line.gate-ok em,.ar .reason.gate-ok em{color:var(--ok);font-style:normal}
+.reason-line.gate-no,.ar .reason.gate-no{color:var(--bad)}
+.reason-line.gate-no em,.ar .reason.gate-no em{color:var(--bad);font-style:normal}
 
 /* ── agents section — drawing frames ─────────────── */
 .agents-section{margin-top:1px;border:1px solid var(--dim-line);border-top:0}
@@ -533,15 +537,6 @@ nav,.ticker-strip,.grant-bar{animation:fadeUp .5s ease both}
 .ledger .amt-cell:not(.muted){text-shadow:0 0 12px rgba(224,92,26,.28)}
 .stamp-settled{box-shadow:0 0 16px rgba(224,92,26,.22)}
 
-/* ── Railway cursor depth-pool — CSS var set by JS ─ */
-body{
-  --mx:50vw;--my:50vh;
-  background-image:
-    radial-gradient(600px circle at var(--mx) var(--my),rgba(80,140,220,0.045) 0%,transparent 70%),
-    repeating-linear-gradient(0deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 32px),
-    repeating-linear-gradient(90deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 32px);
-}
-
 @media(prefers-reduced-motion:reduce){
   .ghost-track{animation:none}
   .city-log-line{animation:none;opacity:1}
@@ -650,7 +645,7 @@ body{
       <div class="empty">
         <div class="glyph">${CROSSHAIR}</div>
         <div class="msg">The city is idle.</div>
-        <div class="hint">Give it a goal and dispatch &mdash; the Manager hires workers under capped sub-budgets, and each payment settles on-chain.</div>
+        <div class="hint">Hit <strong>&#9654; Run the demo</strong> &mdash; the Manager hires workers under capped sub-budgets, every spend clears a private Venice gate, and each payment settles on-chain. Below: a sample run.</div>
       </div>
       <!-- Ghost ledger preview (Linear idle-scroll technique) -->
       ${ghostLedgerHTML()}
@@ -708,6 +703,7 @@ var _lastSpend=0;
 var _logInterval=null;
 var LOG_LINES=[
   ['[CITY]','Commissioning the city…'],
+  ['[GATE]','Venice spend-gate armed · private policy check'],
   ['[CITY]','Hiring ANALYST via Venice reasoning'],
   ['[CITY]','Hiring RESEARCHER — on-chain data feed'],
   ['[CITY]','Hiring SCOUT — price aggregation'],
@@ -758,7 +754,7 @@ function pushTicker(role,amount,status){
 }
 
 /* ── badges ──────────────────────────────────────────────────── */
-var ST={queued:['QUEUED','warn'],hiring:['HIRING','run'],paying:['PAYING','run'],settled:['SETTLED','ok'],failed:['FAILED','bad']};
+var ST={queued:['QUEUED','warn'],hiring:['HIRING','run'],paying:['PAYING','run'],settled:['SETTLED','ok'],failed:['FAILED','bad'],blocked:['BLOCKED','bad'],pending:['PENDING','warn']};
 function badge(s){var m=ST[s]||['…','run'];return'<span class="badge '+m[1]+'"><span class="dot '+m[1]+'"></span>'+m[0]+'</span>';}
 function rcpt(run,e){
   var h=e.txHash;if(!h||!/^0x[0-9a-fA-F]{64}$/.test(h))return'';
@@ -776,6 +772,11 @@ async function loadInfo(){
   var netNames={baseSepolia:'Base Sepolia',base:'Base Mainnet'};
   h+=' <span class="pill">network <b>'+esc(netNames[info.network]||info.network||'?')+'</b></span>';
   $('#banner').innerHTML=h;
+  try{
+    var wh=await (await fetch('/webhooks')).json();
+    var wn=(wh&&wh.verified)||0;
+    $('#banner').innerHTML=h+' <span class="pill" title="Verified 1Shot status webhooks (Ed25519/JWKS), push-first settlement">1Shot webhook <b>'+(wn>0?wn+' verified':'ready')+'</b></span>';
+  }catch(e){/* webhook pill is optional enrichment */}
   if(info.treasury)$('#m-treasury').textContent=shrink(info.treasury);
   if(!live){
     busy(true);$('#goal').disabled=true;
@@ -835,7 +836,16 @@ function staggerCards(container){
 /* ── Rainbow: targeted row update with settle-flash ─────────── */
 function rowKey(e){return e.txHash||('role:'+e.role);}
 
-function updateOrCreateRow(tbody,run,e,isNew){
+/* Service cell content (service + Venice reasoning + spend-gate verdict + credit + data). */
+function rowSvcHtml(e){
+  return esc(e.service||'—')
+    +(e.reasoning?'<div class="reason-line"><em>[reason]</em> '+esc(e.reasoning)+'</div>':'')
+    +(e.gate?'<div class="reason-line gate-line '+(e.gate.approved?'gate-ok':'gate-no')+'"><em>[gate]</em> Venice '+(e.gate.approved?'approved':'BLOCKED')+' &middot; '+esc(e.gate.reason)+'</div>':'')
+    +(e.credit!=null?'<div class="reason-line">credit '+esc(e.credit)+' &middot; '+esc(e.tier||'')+'</div>':'')
+    +(e.data?'<div class="reason-line">received: '+esc(e.data)+'</div>':'');
+}
+
+function updateOrCreateRow(tbody,run,e){
   var key=rowKey(e);
   var isSettled=e.status==='settled';
   var existing=tbody.querySelector('[data-rk="'+CSS.escape(key)+'"]');
@@ -844,21 +854,25 @@ function updateOrCreateRow(tbody,run,e,isNew){
   var rcptHtml=rcpt(run,e)||'<span class="muted">—</span>';
 
   if(existing){
-    /* only update cells that may have changed */
+    /* refresh every cell that accrues over the run: status, service (reason/gate),
+       amount, and receipt (tx hash appears only on settle) */
     var prevSettled=existing.classList.contains('row-settled');
     var statusCell=existing.querySelector('.status-cell');
     var amtCell=existing.querySelector('.amt-cell');
+    var svcCell=existing.querySelector('.svc-cell');
+    var rcptCell=existing.querySelector('.rcpt-cell');
     if(statusCell)statusCell.innerHTML=statusHtml;
-    if(amtCell&&e.amount){
-      amtCell.className='amt-cell';
+    if(svcCell)svcCell.innerHTML=rowSvcHtml(e);
+    if(rcptCell)rcptCell.innerHTML=rcptHtml;
+    if(amtCell){
+      amtCell.className='amt-cell'+(e.amount?'':' muted');
       amtCell.innerHTML=esc(fmtUSDC(e.amount));
     }
     /* flash on newly settled */
     if(isSettled&&!prevSettled){
       existing.classList.add('row-settled');
       existing.classList.remove('row-settle-flash');
-      /* force reflow to restart animation */
-      void existing.offsetWidth;
+      void existing.offsetWidth; /* force reflow to restart animation */
       existing.classList.add('row-settle-flash');
       existing.addEventListener('animationend',function once(){
         existing.classList.remove('row-settle-flash');
@@ -877,15 +891,10 @@ function updateOrCreateRow(tbody,run,e,isNew){
     +'<div class="role-name">'+esc(e.role)+'</div>'
     +'<div class="addr-sub">'+esc(shrink(e.agent))+'</div>'
     +'</td>'
-    +'<td class="svc-cell">'
-    +esc(e.service||'—')
-    +(e.reasoning?'<div class="reason-line"><em>[reason]</em> '+esc(e.reasoning)+'</div>':'')
-    +(e.credit!=null?'<div class="reason-line">credit '+esc(e.credit)+' &middot; '+esc(e.tier||'')+'</div>':'')
-    +(e.data?'<div class="reason-line">received: '+esc(e.data)+'</div>':'')
-    +'</td>'
+    +'<td class="svc-cell">'+rowSvcHtml(e)+'</td>'
     +'<td class="amt-cell'+(e.amount?'':' muted')+'">'+esc(fmtUSDC(e.amount))+'</td>'
     +'<td class="status-cell">'+statusHtml+'</td>'
-    +'<td>'+rcptHtml+'</td>';
+    +'<td class="rcpt-cell">'+rcptHtml+'</td>';
   tbody.appendChild(tr);
 }
 
@@ -1019,6 +1028,7 @@ function render(run){
         +'<div class="ar">'
         +'<span class="meta">'+esc(shrink(e.agent))+'</span>'
         +(e.reasoning?'<span class="reason"><em>[reason]</em> '+esc(e.reasoning)+'</span>':'')
+        +(e.gate?'<span class="reason gate-'+(e.gate.approved?'ok':'no')+'"><em>[gate]</em> Venice '+(e.gate.approved?'approved':'BLOCKED')+'</span>':'')
         +(e.credit!=null?'<span class="meta">credit '+esc(e.credit)+' &middot; '+esc(e.tier||'')+'</span>':'')
         +(e.data?'<span class="meta">received: '+esc(e.data)+'</span>':'')
         +'</div>'
@@ -1182,22 +1192,6 @@ $('#revoke').onclick=async function(){
   await fetch('/revoke',{method:'POST'});
   loadPolicy();
 };
-
-/* ── Railway: cursor depth-pool ──────────────────────────────── */
-(function(){
-  var reduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduced)return;
-  var ticking=false;
-  document.addEventListener('mousemove',function(ev){
-    if(ticking)return;
-    ticking=true;
-    requestAnimationFrame(function(){
-      document.documentElement.style.setProperty('--mx',ev.clientX+'px');
-      document.documentElement.style.setProperty('--my',ev.clientY+'px');
-      ticking=false;
-    });
-  },{passive:true});
-})();
 
 /* Pre-fill the goal so the field is never blank for a judge */
 (function(){var g=$('#goal');if(g&&!g.value)g.value='Produce a market brief on ETH';})();

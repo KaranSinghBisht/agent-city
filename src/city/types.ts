@@ -27,7 +27,8 @@ export type EntryStatus =
   | "paying"
   | "settled"
   | "failed"
-  | "pending";
+  | "pending"
+  | "blocked";
 
 /** A City Ledger line — a verifiable on-chain receipt of one agent's payment. */
 export interface LedgerEntry {
@@ -44,6 +45,7 @@ export interface LedgerEntry {
   txHash?: string;
   data?: string; // the resource the agent received from the x402 service
   reasoning?: string; // the agent's Venice-reasoned purchase decision
+  gate?: { approved: boolean; reason: string }; // Venice spend-gate verdict (private cognition → trusted action)
   credit?: number; // earned credit score after this receipt
   tier?: string;
   error?: string;
@@ -87,4 +89,23 @@ export interface CityDeps {
     role: string;
     service: string;
   }) => Promise<string>;
+  /**
+   * Venice spend-gate: privately judges each worker's spend intent BEFORE the
+   * on-chain redelegation fires (private cognition → trusted action). A
+   * deterministic cap-guard is the hard floor; Venice supplies the judgment.
+   */
+  judge?: (q: {
+    goal: string;
+    role: string;
+    service: string;
+    amount: bigint;
+    subCap: bigint;
+  }) => Promise<{ approved: boolean; reason: string }>;
+  /**
+   * Verified 1Shot webhook status cache. When present, settle() reads it PUSH-first
+   * (a signed webhook gives sub-second status) and only polls the relayer as a fallback.
+   */
+  webhookInbox?: {
+    lookup: (id: string) => { status: number; hash?: string } | undefined;
+  };
 }

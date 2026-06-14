@@ -109,8 +109,18 @@ async function settle(
   relayer: OneShotRelayer,
   taskId: `0x${string}`,
   onTick: (status: number, hash?: string) => void,
+  inbox?: CityDeps["webhookInbox"],
 ): Promise<{ status: number; hash?: string }> {
   for (let i = 0; i < 100; i += 1) {
+    // PUSH-first: a verified 1Shot webhook gives sub-second status without polling.
+    const pushed = inbox?.lookup(taskId);
+    if (pushed) {
+      onTick(pushed.status, pushed.hash);
+      if (pushed.status === 200) return { status: 200, hash: pushed.hash };
+      if (pushed.status === 400 || pushed.status === 500)
+        return { status: pushed.status, hash: pushed.hash };
+    }
+    // PULL fallback: poll the relayer until a webhook arrives (or if none is configured).
     const s = await relayer.getStatus(taskId);
     const hash =
       s.hash ||
@@ -152,6 +162,35 @@ async function hireAndPay(
       deps.onUpdate?.();
     } catch {
       // Reasoning is enrichment — a Venice outage must never block the payment.
+    }
+  }
+
+  // Venice spend-gate: privately judge the spend intent BEFORE any on-chain work.
+  // Private cognition gates the trusted action — the redelegation fires only on approval.
+  if (deps.judge) {
+    let verdict: { approved: boolean; reason: string };
+    try {
+      verdict = await deps.judge({
+        goal,
+        role: spec.role,
+        service: spec.service,
+        amount: spec.payAmount,
+        subCap: spec.subCap,
+      });
+    } catch {
+      // The gate must never crash a run; the on-chain cap is still enforced regardless.
+      verdict = {
+        approved: true,
+        reason: "policy check unavailable — on-chain cap still enforced",
+      };
+    }
+    entry.gate = verdict;
+    deps.onUpdate?.();
+    if (!verdict.approved) {
+      entry.status = "blocked";
+      entry.error = `spend blocked by Venice policy gate: ${verdict.reason}`;
+      deps.onUpdate?.();
+      return;
     }
   }
 
@@ -220,6 +259,7 @@ async function hireAndPay(
         deps.onUpdate?.();
       }
     },
+    deps.webhookInbox,
   );
   entry.txHash = hash ?? entry.txHash;
   if (status === 0) {

@@ -18,6 +18,7 @@ import { OneShotRelayer } from "../relayer.js";
 import { VeniceReasoner } from "../venice.js";
 import { credit, type ReputationStore } from "./reputation.js";
 import { startCityServices } from "./services.js";
+import { buildSpendGate } from "./spendGate.js";
 import type { CityDeps, SmartAccount, WorkerSpec } from "./types.js";
 
 /**
@@ -123,6 +124,7 @@ export async function createCityBase(): Promise<CityBase> {
       principal,
       repStore,
       reason: buildCityReasoner(),
+      judge: buildSpendGate(),
     },
     network: config.chainName,
     explorerTxBase: isTestnet
