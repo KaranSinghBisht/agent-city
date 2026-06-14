@@ -1,5 +1,5 @@
 /** Landing page (GET /). Blueprint Civic theme. */
-import { FONTS, THEME_CSS } from "./theme.js";
+import { FAVICON_LINK, FONTS, LOGO_MARK, THEME_CSS } from "./theme.js";
 
 const TX_1SHOT = "https://basescan.org/tx/0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf";
 const TX_A2A   = "https://sepolia.basescan.org/tx/0x24af8650b5690755e4dfad5d16947c06d753257348872c9bd73bbad8d6b2ae27";
@@ -192,6 +192,7 @@ export const LANDING_HTML = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Agent City &mdash; an economy of AI agents that cannot overspend</title>
 <meta name="description" content="Agent City: AI agents hire and pay each other under cryptographic budgets enforced on-chain. Sub-budgets via MetaMask delegations (A2A), payments via x402, gasless settlement via 1Shot."/>
+${FAVICON_LINK}
 ${FONTS}
 <style>${THEME_CSS}
 
@@ -204,7 +205,8 @@ nav .container{
   display:flex;align-items:center;
   justify-content:space-between;height:54px;
 }
-.brand{display:flex;flex-direction:column;gap:1px;text-decoration:none}
+.brand{display:flex;flex-direction:row;align-items:center;gap:10px;text-decoration:none}
+.brand-text{display:flex;flex-direction:column;gap:1px}
 .brand-name{
   font-family:var(--display);font-size:20px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;color:var(--ink);line-height:1;
@@ -504,8 +506,11 @@ footer .fl a:hover{color:var(--ink)}
 
 <nav><div class="container">
   <a class="brand" href="/">
-    <span class="brand-name">Agent City</span>
-    <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Vol.&thinsp;I</span>
+    ${LOGO_MARK}
+    <span class="brand-text">
+      <span class="brand-name">Agent City</span>
+      <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Vol.&thinsp;I</span>
+    </span>
   </a>
   <div class="navlinks">
     <a class="tab" href="#how">How it works</a>
@@ -791,8 +796,11 @@ footer .fl a:hover{color:var(--ink)}
 
 <footer><div class="container">
   <a class="brand" href="/">
-    <span class="brand-name">Agent City</span>
-    <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Vol.&thinsp;I</span>
+    ${LOGO_MARK}
+    <span class="brand-text">
+      <span class="brand-name">Agent City</span>
+      <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Vol.&thinsp;I</span>
+    </span>
   </a>
   <div class="fl">
     <a href="#how">How it works</a>

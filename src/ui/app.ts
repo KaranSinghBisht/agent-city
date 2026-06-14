@@ -1,5 +1,5 @@
 /** Agent City app (GET /app). Blueprint Civic theme. Drives /city/run + /city/run/:id and the live City Ledger. */
-import { FONTS, THEME_CSS } from "./theme.js";
+import { FAVICON_LINK, FONTS, LOGO_MARK, THEME_CSS } from "./theme.js";
 
 /** Animated blueprint crosshair — empty state SVG. Now with sonar-ping ring. */
 const CROSSHAIR = `<svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" style="display:block;margin:0 auto"><circle cx="32" cy="32" r="18" fill="none" stroke="var(--dim-line)" stroke-width="1" stroke-dasharray="3 4"/><circle cx="32" cy="32" r="18" fill="none" stroke="var(--ink-3)" stroke-width="0.75" opacity="0.4"><animate attributeName="r" values="18;32;18" dur="2.4s" begin="0.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.4;0;0.4" dur="2.4s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="32" cy="32" r="5" fill="none" stroke="var(--ink-3)" stroke-width="1"><animate attributeName="r" values="5;8;5" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite"/></circle><line x1="32" y1="4" x2="32" y2="22" stroke="var(--ink-3)" stroke-width="1"/><line x1="32" y1="42" x2="32" y2="60" stroke="var(--ink-3)" stroke-width="1"/><line x1="4" y1="32" x2="22" y2="32" stroke="var(--ink-3)" stroke-width="1"/><line x1="42" y1="32" x2="60" y2="32" stroke="var(--ink-3)" stroke-width="1"/></svg>`;
@@ -119,7 +119,9 @@ export const APP_HTML = `<!doctype html>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Agent City &mdash; live demo</title>
+${FAVICON_LINK}
 ${FONTS}
+<link rel="stylesheet" href="https://esm.sh/@xyflow/react@12/dist/style.css"/>
 <style>${THEME_CSS}
 
 /* ── nav ──────────────────────────────────────────── */
@@ -132,8 +134,9 @@ nav .container{
   height:54px;gap:16px;
 }
 .brand{
-  display:flex;flex-direction:column;gap:1px;text-decoration:none;
+  display:flex;flex-direction:row;align-items:center;gap:10px;text-decoration:none;
 }
+.brand-text{display:flex;flex-direction:column;gap:1px}
 .brand-name{
   font-family:var(--display);font-size:18px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;color:var(--ink);line-height:1;
@@ -309,7 +312,15 @@ textarea#goal:disabled{opacity:.4}
 .cmw-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:8px 14px;border-bottom:1px solid var(--dim-line);background:var(--bg-2)}
 .cmw-title{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
 .cmw-legend{font-family:var(--mono);font-size:9px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
-.city-map-wrap svg{display:block;width:100%;height:auto;padding:14px 16px;max-height:340px}
+/* scope to the fallback SVG only — must NOT touch React Flow's internal svgs */
+.city-map-wrap #city-map{display:block;width:100%;height:auto;padding:14px 16px;max-height:340px}
+#rf-root{min-height:300px}
+/* React Flow — blueprint dark theme */
+.react-flow__controls{box-shadow:0 0 0 1px var(--dim-line)}
+.react-flow__controls-button{background:var(--surface);border-bottom:1px solid var(--dim-line)}
+.react-flow__controls-button:hover{background:var(--surface-2)}
+.react-flow__controls-button svg{fill:var(--ink-2)}
+.react-flow__attribution{display:none}
 
 /* Activity masthead */
 .activity-masthead{
@@ -659,8 +670,11 @@ nav,.ticker-strip,.grant-bar{animation:fadeUp .5s ease both}
 
 <nav><div class="container">
   <a class="brand" href="/">
-    <span class="brand-name">Agent City</span>
-    <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Live</span>
+    ${LOGO_MARK}
+    <span class="brand-text">
+      <span class="brand-name">Agent City</span>
+      <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Live</span>
+    </span>
   </a>
   <div class="banner" id="banner"></div>
   <div class="nav-actions">
@@ -748,9 +762,9 @@ nav,.ticker-strip,.grant-bar{animation:fadeUp .5s ease both}
     <div class="city-map-wrap">
       <div class="cmw-head">
         <span class="cmw-title">The City &mdash; Live Map</span>
-        <span class="cmw-legend">authority flows down &middot; payments flow to services</span>
+        <span class="cmw-legend">drag to arrange &middot; scroll to zoom &middot; authority flows down to services</span>
       </div>
-      ${cityMap()}
+      <div id="rf-root">${cityMap()}</div>
     </div>
 
     <!-- Engineering-drawing masthead -->
@@ -1105,6 +1119,7 @@ function render(run){
   var spend=calcSpend(run.ledger);
 
   updateCityMap(run);
+  try{window.dispatchEvent(new CustomEvent('cityrun',{detail:{ledger:run.ledger,status:run.status,revoked:revoked}}));}catch(e){}
 
   /* Stripe animated counter */
   var sc=$('#spend-counter');
@@ -1341,6 +1356,7 @@ async function dispatch(){
   seenTx=[];seenRows={};
   _lastSpend=0;
   cmReset();
+  try{window.dispatchEvent(new CustomEvent('cityrun',{detail:{ledger:[],status:'queued',revoked:false}}));}catch(e){}
   var goal=$('#goal').value.trim()||'Produce a market brief on ETH';
 
   /* Reset ticker */
@@ -1395,6 +1411,7 @@ $('#revoke').onclick=async function(){
   await fetch('/revoke',{method:'POST'});
   loadPolicy();
   var cm=$('#city-map');if(cm)cm.classList.add('revoked');
+  try{window.dispatchEvent(new CustomEvent('cityrun',{detail:{ledger:[],status:'',revoked:true}}));}catch(e){}
 };
 
 /* ── MetaMask: connect + in-page ERC-7715 grant (the real Advanced Permissions popup) ── */
@@ -1442,4 +1459,5 @@ mmLoadCfg();
 
 loadInfo();loadPolicy();loadGrant();loadStats();
 </script>
+<script type="module" src="/city-graph.js"></script>
 </body></html>`;

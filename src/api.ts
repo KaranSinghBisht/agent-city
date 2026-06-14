@@ -13,14 +13,27 @@ import type { RunState } from "./agent/types.js";
 import { APP_HTML } from "./ui/app.js";
 import { GRANT_HTML } from "./ui/grant.js";
 import { LANDING_HTML } from "./ui/landing.js";
+import { FAVICON_SVG } from "./ui/theme.js";
 import type { Reasoner } from "./venice.js";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { runCity } from "./city/orchestrator.js";
 import type { CityBase } from "./city/live.js";
 import type { CityRun } from "./city/types.js";
 import { WebhookInbox } from "./city/webhookInbox.js";
 import { parseGrant, type ParsedGrant } from "./delegation/grantBridge.js";
 import { RelayerWebhookVerifier } from "./webhook.js";
+
+// The React Flow city-graph client (a build-free ESM module, served as a static file).
+let CITY_GRAPH_JS = "/* city graph unavailable */";
+try {
+  CITY_GRAPH_JS = readFileSync(
+    new URL("./ui/cityGraph.client.js", import.meta.url),
+    "utf8",
+  );
+} catch {
+  // Fall back silently — the page keeps its inline SVG city map.
+}
 
 export interface DemoInfo {
   mode: "live" | "dry-run";
@@ -82,6 +95,14 @@ export function createApi(deps: ApiDeps): Hono {
   app.get("/", (c) => c.html(LANDING_HTML));
   app.get("/app", (c) => c.html(APP_HTML));
   app.get("/healthz", (c) => c.json({ ok: true }));
+  app.get("/favicon.svg", (c) =>
+    c.body(FAVICON_SVG, 200, { "content-type": "image/svg+xml" }),
+  );
+  app.get("/city-graph.js", (c) =>
+    c.body(CITY_GRAPH_JS, 200, {
+      "content-type": "application/javascript; charset=utf-8",
+    }),
+  );
   app.get("/info", (c) =>
     c.json(deps.info ?? { mode: "dry-run", network: "none" }),
   );

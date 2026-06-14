@@ -14,6 +14,15 @@ export const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500&family=JetBrains+Mono:wght@400;600&display=block" rel="stylesheet">`;
 
+/** SVG favicon link (served at /favicon.svg by the API). */
+export const FAVICON_LINK = `<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>`;
+
+/** The Agent City mark: an orange treasury node re-delegating down to two capped workers. */
+export const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#091525"/><rect x="11" y="3" width="10" height="8" fill="#E05C1A"/><path d="M16 11V15 M7 15H25 M7 15V19 M25 15V19" stroke="#2A5080" stroke-width="1.6" fill="none"/><rect x="3" y="19" width="9" height="8" fill="#0F2540" stroke="#7A9BC4" stroke-width="1.3"/><rect x="20" y="19" width="9" height="8" fill="#0F2540" stroke="#7A9BC4" stroke-width="1.3"/></svg>`;
+
+/** Inline logo mark for nav brands (no background). */
+export const LOGO_MARK = `<svg class="logo-mark" viewBox="0 0 32 32" width="24" height="24" aria-hidden="true" style="flex:none"><rect x="11" y="3" width="10" height="8" fill="#E05C1A"/><path d="M16 11V15 M7 15H25 M7 15V19 M25 15V19" stroke="#2A5080" stroke-width="1.6" fill="none"/><rect x="3" y="19" width="9" height="8" fill="#0F2540" stroke="#7A9BC4" stroke-width="1.3"/><rect x="20" y="19" width="9" height="8" fill="#0F2540" stroke="#7A9BC4" stroke-width="1.3"/></svg>`;
+
 export const THEME_CSS = `
 :root{
   --bg:          #091525;

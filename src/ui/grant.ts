@@ -4,13 +4,14 @@
  * monospace spec table, APPROVED/REJECTED stamp on result.
  * No build step — plain template string served by the Hono API.
  */
-import { FONTS, THEME_CSS } from "./theme.js";
+import { FAVICON_LINK, FONTS, LOGO_MARK, THEME_CSS } from "./theme.js";
 
 export const GRANT_HTML = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>Agent City &mdash; Issue a City Permit (ERC-7715)</title>
+${FAVICON_LINK}
 ${FONTS}
 <style>${THEME_CSS}
 
@@ -21,7 +22,8 @@ nav{
 nav .container{
   display:flex;align-items:center;justify-content:space-between;height:54px;
 }
-.brand{display:flex;flex-direction:column;gap:1px;text-decoration:none}
+.brand{display:flex;flex-direction:row;align-items:center;gap:10px;text-decoration:none}
+.brand-text{display:flex;flex-direction:column;gap:1px}
 .brand-name{
   font-family:var(--display);font-size:20px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;color:var(--ink);line-height:1;
@@ -318,8 +320,11 @@ nav .container{
 
 <nav><div class="container">
   <a class="brand" href="/">
-    <span class="brand-name">Agent City</span>
-    <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Vol.&thinsp;I</span>
+    ${LOGO_MARK}
+    <span class="brand-text">
+      <span class="brand-name">Agent City</span>
+      <span class="brand-sub">MetaMask &middot; 1Shot &middot; Venice &mdash; Vol.&thinsp;I</span>
+    </span>
   </a>
   <a class="btn btn-ghost" href="/app">Enter the city &rarr;</a>
 </div></nav>
