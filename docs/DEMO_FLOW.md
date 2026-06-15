@@ -45,7 +45,12 @@ zero-retention — that has to sign off."
 gas in USDC, no ETH needed. And it's real: here's the actual transaction — the delegation redemption, the
 USDC moving. Every payment is a receipt you can check yourself."
 
-### 1:28–1:58 — 🔒 THE MONEY SHOT: try to make it misbehave
+### 1:28–1:40 — The deliverable (the payoff)
+**[SCREEN]** A signal-orange **Deliverable** block appears at the top of the log with the brief.
+**SAY:** "And here's what I actually paid for — the brief itself. Venice wrote it from *only* what the agents
+bought: that live ETH price, the sentiment read. I asked for a market brief; the agents earned it and produced one."
+
+### 1:40–2:08 — 🔒 THE MONEY SHOT: try to make it misbehave
 **[SCREEN]** Back to `/app`. Click **⚠ Try a bad spend**.
 **SAY:** "Okay — now let me attack my own agent. I'm telling it to do something off-mission, nothing to do
 with the job. Dispatch…"
