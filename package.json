@@ -15,7 +15,8 @@
     "prove:grant": "tsx scripts/prove-grant.ts",
     "grant:dev": "tsx scripts/dev-grant.ts",
     "demo": "tsx scripts/demo-live.ts",
-    "city": "tsx scripts/run-city.ts"
+    "city": "tsx scripts/run-city.ts",
+    "export:static": "tsx scripts/export-static.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.4",

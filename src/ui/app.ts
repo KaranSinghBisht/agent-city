@@ -934,13 +934,11 @@ async function loadInfo(){
   if(info.treasury)$('#m-treasury').textContent=shrink(info.treasury);
   if(!live){
     busy(true);$('#goal').disabled=true;
-    $('#out').innerHTML='<div style="border:2px solid var(--warn);outline:1px solid var(--warn);outline-offset:3px;padding:18px;background:var(--warn-dim)">'
-      +'<div style="font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--warn);margin-bottom:8px">Notice &mdash; Demo Mode</div>'
-      +'<p style="font-family:var(--body);font-size:13px;color:var(--ink-2);line-height:1.6">'
-      +'Live mode requires .env credentials (PRIVATE_KEY, USDC_ADDRESS, ONESHOT_URL). '
-      +'Start the server with a populated .env to run the city and watch payments settle on-chain. '
-      +'The delegation tree, agent cards, and City Ledger are all operational in live mode.'
-      +'</p></div>';
+    $('#out').insertAdjacentHTML('afterbegin','<div style="border:1px solid var(--warn);background:var(--warn-dim);padding:12px 14px;margin-bottom:14px">'
+      +'<div style="font-family:var(--display);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--warn);margin-bottom:6px">Hosted UI preview</div>'
+      +'<p style="font-family:var(--body);font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:0">'
+      +'You\\'re viewing the live UI. The on-chain demo &mdash; real Base settlements via 1Shot, the private Venice spend-gate, and A2A redelegation &mdash; runs in the <strong>demo video</strong> and locally with credentials (see the README). The map and a sample ledger below are illustrative.'
+      +'</p></div>');
   }
 }
 async function loadGrant(){
@@ -988,7 +986,16 @@ function setAuto(on){
 }
 
 async function loadPolicy(){
-  var p=await (await fetch('/policy')).json();
+  var p;
+  try{p=await (await fetch('/policy')).json();}
+  catch(e){
+    /* hosted static preview (no backend): show the demo policy caps so the spec sheet reads complete */
+    $('#m-budget').textContent='5 USDC';
+    $('#m-percap').textContent='≤ 1 USDC';
+    $('#m-status').innerHTML='<span class="badge ok"><span class="dot ok"></span>ACTIVE</span>';
+    return;
+  }
+  if(!p)return;
   $('#m-budget').textContent=fmtUSDC(p.maxPerDay);
   $('#m-percap').textContent='≤ '+fmtUSDC(p.maxPerTx);
   revoked=!!p.revoked;
