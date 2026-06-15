@@ -648,7 +648,7 @@ footer .fl a:hover{color:var(--ink)}
         <div class="annot-marker"><span>D</span></div>
         <div class="annot-content">
           <h3>Revoke the whole city</h3>
-          <p>Pull authority at any level in one click. Cut the Manager and every worker beneath it loses its budget instantly &mdash; cryptographic kill-switch, not a UI toggle.</p>
+          <p>Pull authority in one click. The Manager and every worker beneath it is cut off instantly &mdash; the next spend never clears, and nothing new settles on-chain.</p>
         </div>
       </li>
     </ol>
@@ -778,7 +778,7 @@ footer .fl a:hover{color:var(--ink)}
     <div class="spec-cell reveal d3">
       <div class="sc-glyph">SPC-03 / REVOCATION</div>
       <h3>Revoke the whole tree</h3>
-      <p>Pull authority at any level instantly. Cut the Manager and every worker beneath it loses its budget in the same block &mdash; cryptographic kill-switch.</p>
+      <p>Pull authority in one click &mdash; every worker beneath the Manager is cut off the instant you revoke; no further payment goes through.</p>
     </div>
   </div>
 </div></section>

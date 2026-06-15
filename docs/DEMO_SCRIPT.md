@@ -48,9 +48,9 @@ chain, not by the agent's goodwill." (A2A: the Manager re-delegated each worker 
 
 ### 2:10–2:30 — Kill switch + close
 **Show:** **Revoke the city** → the whole map dims red, dispatch disabled.
-**Say:** "And if I trust none of it, one transaction severs the whole tree — every agent loses its budget in the
-same block. Two locks on every agent payment: a private brain that must say *yes*, an on-chain cap that says
-*how much*. I never trusted the agent. I didn't have to."
+**Say:** "And if I trust none of it, one click revokes the whole tree — every agent is cut off before its next
+spend can even start. Two locks on every agent payment: a private brain that must say *yes*, an on-chain cap
+that says *how much*. I never trusted the agent. I didn't have to."
 
 ---
 
