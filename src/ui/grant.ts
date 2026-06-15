@@ -521,6 +521,7 @@ async function grant(){
   $('#grant').disabled=true;
   show('Requesting permission… approve in MetaMask.');
   var periodAmount='0x'+(5n*(10n**6n)).toString(16);
+  var expiry=Math.floor(Date.now()/1000)+7*86400;
   var req={
     chainId:'0x'+Number(cfg.chainId).toString(16),
     to:cfg.agent,
@@ -533,7 +534,8 @@ async function grant(){
         periodDuration:86400,
         justification:'Agent City may spend ≤5 USDC/day on your behalf (revocable).'
       }
-    }
+    },
+    rules:[{type:'expiry',data:{timestamp:expiry}}]
   };
   try{
     var granted=await window.ethereum.request({method:'wallet_requestExecutionPermissions',params:[req]});
