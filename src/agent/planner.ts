@@ -1,9 +1,8 @@
 /**
- * Steward planner loop. Stateless w.r.t. a run (all state in RunState), so runs
+ * Agent City planner loop. Stateless w.r.t. a run (all state in RunState), so runs
  * pause at the approval gate and resume later. Venice reasons privately; the
  * policy gate bounds every action; an injected Executor performs the on-chain
- * redemption via the delegation + 1Shot relayer. Ported from the verified Relay
- * core (see ../../qwen-cloud).
+ * redemption via the delegation + 1Shot relayer.
  */
 import { randomUUID } from "node:crypto";
 
@@ -19,7 +18,7 @@ type Decision =
   | { kind: "propose"; action: ProposedAction }
   | { kind: "final"; output: string };
 
-const SYSTEM = `You are Steward, an AI treasurer that can ONLY spend inside a cryptographic budget.
+const SYSTEM = `You are an Agent City treasurer, an AI agent that can ONLY spend inside a cryptographic budget.
 Reply with a SINGLE JSON object and nothing else, one of:
   {"action":"propose","proposal":{"kind":"transfer","to":"0x..","token":"0x..","amount":"<base units>","reason":"why"}}
   {"action":"final","output":"<summary for the user>"}
@@ -58,7 +57,7 @@ export function parseDecision(text: string): Decision {
   throw new Error("unknown or missing 'action'");
 }
 
-export class Steward {
+export class BoundedAgent {
   constructor(
     private readonly reasoner: Reasoner,
     private readonly policy: Policy,

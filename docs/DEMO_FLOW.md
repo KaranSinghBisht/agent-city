@@ -1,5 +1,14 @@
 # Agent City — demo flow + narration (the words to speak)
 
+> ✅ **CANONICAL demo script.** Use this file. `docs/DEMO_SCRIPT.md` is an earlier draft kept for reference.
+>
+> ⚠️ **Flask honesty (must not be ambiguous on camera):** the interactive MetaMask **Flask** Advanced-
+> Permissions popup has **NOT** been run end-to-end. The reproducible grant path is `npm run grant:dev`
+> (a synthetic ERC-7715 grant signed with the `.env` key, same `parseGrant`/`decodeDelegations` bridge).
+> If you stage the grant with `grant:dev`, **say so or do not show/imply the Flask popup** — narrate it as
+> "pre-staged" and keep the popup off-screen. The ERC-7715 grant *is* redeemed on-chain (`npm run prove:grant`);
+> what is unproven is the interactive popup, not the grant mechanism.
+
 **Length target: ~2:20 (hard cap 3:00).** Talk like a person, not a pitch deck — contractions, short
 sentences, a little edge. The climax is **negation**: the agent *trying* to spend and being *refused*.
 (This script was reviewed by an adversarial critic; honesty fixes are baked in — every line below is

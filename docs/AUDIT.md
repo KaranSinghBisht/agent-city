@@ -1,12 +1,17 @@
 # Agent City — Lead Reviewer Audit & Action Plan
 
-**Project:** Agent City / Steward (MetaMask x 1Shot x Venice Dev Cook-Off)
+**Project:** Agent City (MetaMask x 1Shot x Venice Dev Cook-Off) — *earlier named Steward*
 **Date:** 2026-06-07 · **Deadline:** 2026-06-15 10:59 UTC
 **Inputs merged:** security audit (24 findings), adversarial verification (6 confirmed `isReal=true`), 3-judge panel.
 
 ---
 
 ## Verdict (honest)
+
+> ⚠️ **Superseded on the ERC-7715 point** — this verdict was written before the grant was wired. The
+> browser grant is now passed into the city run and redeemed under the granted context (`src/api.ts:235-251`
+> → `src/delegation/grantBridge.ts` → `src/city/orchestrator.ts`; `npm run prove:grant`). Read the sentence
+> below about the grant being "stored in `lastGrant` and never redeemed" as historical, not current.
 
 Real, on-chain-proven delegation engine with an exceptionally honest BUILD_STATE — the 1Shot track is genuinely strong (testnet + mainnet, USDC gas, EIP-7702, RedeemedDelegation events) and the "the delegation IS the cap" thesis is sharp. But the project **cannot be filed today** (registration `canSubmit=false`, no demo video) and its **headline ERC-7715 "Advanced Permissions in the main flow" claim is non-functional**: the browser grant is stored in `lastGrant` and never redeemed — every proven flow uses a backend signer. There is also a real DOM XSS on the wallet-connected origin and an A2A cap-math bug that breaks the City Ledger under mainnet fees. Fix the non-code blockers first; they gate everything.
 
@@ -31,14 +36,36 @@ Real, on-chain-proven delegation engine with an exceptionally honest BUILD_STATE
 | **Best x402 + ERC-7710** | **6–7** | 7710 settlement real on-chain (tx `0xbbce…450b`, service got 0.05 USDC). x402 protocol-conformance is approximate: gate is unauthenticated, X-PAYMENT shape self-invented, not EIP-3009. |
 | **Best Use of Venice AI** | **7** | Real dual-endpoint (private reasoning + Crypto-RPC reads). "Private/zero-retention" is platform default, not engineered; reads are shallow (balanceOf only). |
 | **Best Agent** | **6–7** | Real planner with HITL — but the true per-spend approval lives in the orphaned `/runs` path; the shipped Agent City UI dropped the pause. |
-| **ERC-7715 end-to-end** | **2** | Scaffolded, not working. Grant button with no consumer. |
+| **ERC-7715 end-to-end** | ~~2~~ → **wired** | *Original: "Scaffolded, not working. Grant button with no consumer."* **Now resolved** — grant is redeemed under its granted context (`src/api.ts:235-251`, `npm run prove:grant`). Remaining caveat: the interactive Flask popup itself was not run end-to-end (see Known limitations). |
 | **Submission readiness** | **3** | `canSubmit=false` + no video. Gates everything. |
+
+---
+
+## ✅ Status update (post-audit) — what has since been fixed
+
+> This audit was the action plan; most P0/P1 code items have since landed. The table below is the current
+> truth, with the fixing file:ref. Items not listed here remain as written (see **Known limitations** at the
+> end). The headline ERC-7715 verdict above ("grant never redeemed") is now **stale** — the grant is wired.
+
+| Audit item | Status | Where it was fixed |
+|---|---|---|
+| **P0-3** ERC-7715 grant never reaches `runCity` / any executor | ✅ **Resolved** | `src/api.ts:235-251` snapshots the active grant and passes `grantChain: grant?.chain` into `runCity`; `src/delegation/grantBridge.ts:66` (`parseGrant` + Kit `decodeDelegations`) → `src/city/orchestrator.ts` chains workers under it. `npm run prove:grant` redeems under a granted periodic context on-chain. |
+| **P0-5 / P1-3** DOM XSS in `rcpt()` + incomplete `esc()` | ✅ **Resolved** | `src/ui/app.ts:839` `esc()` now escapes `[&<>"']`; `src/ui/app.ts:930` validates `txHash` against `/^0x[0-9a-fA-F]{64}$/` and bails otherwise; rows built via `createElement`/`textContent`. |
+| **P0-6** A2A cap-math floor too low (City Ledger reverts under mainnet fees) | ✅ **Resolved** | `src/city/live.ts:132` raised the floor to `0.5 + (score/100)*0.5` (0.50→1.00 USDC) so a fresh worker's cap comfortably covers work + relayer fee. |
+| **P0-7 / P1-?** Webhook receiver unwired (`destinationUrl` set by no caller) | ✅ **Resolved (wired)** | `POST /webhooks/1shot` (`src/api.ts:113`) verifies Ed25519/JWKS and records into a push-first inbox (`src/city/webhookInbox.ts`) that `settle()` reads **before** polling (`src/city/orchestrator.ts:116-121`). Push is active when `WEBHOOK_PUBLIC_URL` is set; polling is the documented fallback. |
+| **P0-8** No committed on-chain proof artifacts | ⚠️ **Partial** | `docs/proofs/` exists with a manifest README pinning the load-bearing tx hashes; each is openable on Basescan. Raw machine-readable receipt JSON/log files are being added — until they land, verify the listed hashes directly on the explorer. |
+| **P1-9 / honesty** Two product names (Steward vs Agent City), stale test counts | ✅ **Resolved** | Renamed to **Agent City** across README, `docs/architecture.md`, `docs/TESTING.md`; counts corrected to **57 tests / 13 files**; `BUILD_STATE.md` carries a historical-log banner. |
+
+The remaining open items (P0-4 grant wire-shape hardening, the x402 gate verifying payment, per-spend HITL
+in the City flow, dead-code removal, duplication) are tracked under **Known limitations** at the foot of
+this file. The text below is preserved verbatim as the original audit record.
 
 ---
 
 ## P0 — Must fix (blocks submission, breaks the demo, leaks data, or overclaims)
 
 > Only REAL, verified issues. Non-code blockers first because they gate the prize.
+> *(Historical audit record — see the Status update above for what has since been resolved.)*
 
 1. **[BLOCKER · non-code] Confirm HackQuest registration — `canSubmit=false`** (Task #13). On HackQuest you must be registered to submit; none of the on-chain proof counts if the entry cannot be filed. Do this TODAY, before any code.
 
@@ -119,3 +146,29 @@ Real, on-chain-proven delegation engine with an exceptionally honest BUILD_STATE
 8. **Reconcile the webhook claim with reality** (downgrade copy or wire one event) — protects the strongest prize (Best 1Shot) from a "this is unwired scaffolding" finding.
 
 **Net:** This is a top-quartile build whose ceiling is gated almost entirely by execution, not engineering. The on-chain proof and intellectual honesty are genuinely differentiating; the gap to a top-3 finish is (1) being submittable and (2) making the ERC-7715 front door real. Do those two and it competes for Best 1Shot + Best A2A with a credible shot at stacking Venice.
+
+---
+
+## Known limitations (current, honest)
+
+The on-chain spine (1Shot redemption, EIP-7702 upgrade, A2A redelegation, x402-as-7710, ERC-7715 grant
+redemption) is proven. These are the honest gaps a judge should know — none are hidden by the UI copy:
+
+1. **Interactive MetaMask Flask popup not run end-to-end.** The ERC-7715 grant is wired and redeemed
+   on-chain (`prove:grant`), but the live Flask Advanced-Permissions popup itself was not exercised
+   end-to-end; the reproducible grant path is `npm run grant:dev` (synthetic grant, same bridge). The
+   demo scripts call this out.
+2. **The x402 402-gate is not payment-verifying.** `src/city/services.ts` returns the resource on the
+   presence of an `X-PAYMENT` header; settlement is real but confirmed out-of-band (balanceOf / relayer
+   status), not by the service decoding the proof. The UI/README describe this honestly (settlement is
+   confirmed out-of-band, not "only after chain confirmation").
+3. **No per-spend human pause in the live City flow.** The City `/app` flow uses the **Venice spend-gate**
+   (auto-approve/block, fail-closed) plus the on-chain cap; the one-time "Approve & dispatch" toggle is a
+   pre-dispatch confirm, not a per-spend HITL gate. True per-spend human approval lives only in the
+   single-agent `npm run demo` planner (`src/agent/planner.ts`).
+4. **Settlement scheme is the ERC-7710 redemption, not canonical Coinbase x402 (EIP-3009).** The X-PAYMENT
+   payload shape is self-invented; the 7710 half is the real, on-chain part. Flagged in the README.
+5. **Proof receipts.** `docs/proofs/` pins the load-bearing tx hashes (openable on Basescan); raw
+   machine-readable receipt files are being filled in.
+6. **Dead code / duplication** (P2 / P1-11): a few zero-caller exports and verbatim-duplicated helpers
+   across `src/` and `scripts/` remain; non-load-bearing, tracked for cleanup.

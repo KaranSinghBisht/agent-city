@@ -945,7 +945,7 @@ async function loadInfo(){
   try{
     var wh=await (await fetch('/webhooks')).json();
     var wn=(wh&&wh.verified)||0;
-    $('#banner').innerHTML=h+' <span class="pill" title="Verified 1Shot status webhooks (Ed25519/JWKS), push-first settlement">1Shot webhook <b>'+(wn>0?wn+' verified':'ready')+'</b></span>';
+    $('#banner').innerHTML=h+' <span class="pill" title="1Shot status receiver verifies Ed25519/JWKS; push-first when an event arrives, else relayer-status polling">1Shot webhook <b>'+(wn>0?wn+' verified':'ready')+'</b></span>';
   }catch(e){/* webhook pill is optional enrichment */}
   if(info.treasury)$('#m-treasury').textContent=shrink(info.treasury);
   if(!live){

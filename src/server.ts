@@ -11,12 +11,12 @@ import { createApi, type ApiDeps } from "./api.js";
 import { resolveChain } from "./chains.js";
 import { createCityBase } from "./city/live.js";
 import { config } from "./config.js";
-import { createLiveSteward } from "./live.js";
+import { createLiveAgent } from "./live.js";
 import { VeniceReasoner } from "./venice.js";
 
 async function buildDeps(): Promise<ApiDeps> {
   try {
-    const live = await createLiveSteward();
+    const live = await createLiveAgent();
     process.stdout.write(`LIVE mode — treasury ${live.account.address} on ${config.chainName}\n`);
     const explorerTxBase = resolveChain(config.chainName).isTestnet
       ? "https://sepolia.basescan.org/tx/"

@@ -1,5 +1,5 @@
 /**
- * HTTP API over the Steward agent (Hono — testable via app.request, no real
+ * HTTP API over the Agent City agent (Hono — testable via app.request, no real
  * server needed). Reasoner/executor/policy are injected so it runs live
  * (Venice + DelegatedExecutor) or in demos/tests (fakes + DryRunExecutor).
  * Optional `contextProvider` (on-chain reads via Venice) and `statusChecker`
@@ -7,7 +7,7 @@
  */
 import { Hono } from "hono";
 
-import { Steward, type Executor } from "./agent/planner.js";
+import { BoundedAgent, type Executor } from "./agent/planner.js";
 import type { Policy } from "./agent/policy.js";
 import type { RunState } from "./agent/types.js";
 import { APP_HTML } from "./ui/app.js";
@@ -85,7 +85,7 @@ function lastTaskId(state: RunState): string | undefined {
 
 export function createApi(deps: ApiDeps): Hono {
   const runs = new Map<string, RunState>();
-  const steward = new Steward(deps.reasoner, deps.policy, deps.executor);
+  const agent = new BoundedAgent(deps.reasoner, deps.policy, deps.executor);
   let revoked = false;
   // Verified 1Shot webhook receiver: signature-checked status events feed a PUSH-first inbox.
   const webhookInbox = new WebhookInbox();
@@ -162,7 +162,7 @@ export function createApi(deps: ApiDeps): Hono {
         // fall back to the raw goal if the on-chain read fails
       }
     }
-    const state = await steward.resume(steward.start(goal));
+    const state = await agent.resume(agent.start(goal));
     runs.set(state.id, state);
     return c.json(serialize(state));
   });
@@ -199,7 +199,7 @@ export function createApi(deps: ApiDeps): Hono {
       approved?: unknown;
       note?: unknown;
     };
-    const next = await steward.approve(
+    const next = await agent.approve(
       state,
       Boolean(body.approved),
       String(body.note ?? ""),

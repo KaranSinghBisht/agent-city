@@ -12,6 +12,7 @@
  */
 import type { Executor } from "../agent/planner.js";
 import type { ExecutionResult, ProposedAction } from "../agent/types.js";
+import { config } from "../config.js";
 import { buildBudgetDelegation } from "../delegation/delegation.js";
 import { DelegatedExecutor, staticResolver } from "../delegation/executor.js";
 import {
@@ -222,6 +223,12 @@ async function hireAndPay(
     chainId: deps.chainId,
     resolveContext: staticResolver(context),
     authorization,
+    // When a public URL is configured, ask the relayer to POST signed status
+    // webhooks to /webhooks/1shot — settle() then reads them push-first (the
+    // inbox) and only polls as a fallback. Unset (tests/default) ⇒ polling.
+    ...(config.webhookPublicUrl
+      ? { destinationUrl: `${config.webhookPublicUrl}/webhooks/1shot` }
+      : {}),
   });
 
   // Pay-per-call: GET the x402 service; on 402, settle the price under the cap.

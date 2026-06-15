@@ -17,6 +17,11 @@ coverage/
 .vscode/
 *.log
 
+# Machine-verifiable on-chain proofs are committed on purpose (read-only
+# eth_getTransactionReceipt / eth_getCode artifacts; regenerate with
+# `npx tsx scripts/fetch-proofs.ts`). The *.log capture files stay ignored above.
+!docs/proofs/*.json
+
 # OMC orchestration state (local only)
 .omc/
 /public

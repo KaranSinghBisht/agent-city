@@ -1,6 +1,6 @@
 /**
  * Live composition root: wires the proven halves of the spine into one runnable
- * Steward. Reads the treasury balance THROUGH Venice Crypto-RPC (so Venice is a
+ * agent. Reads the treasury balance THROUGH Venice Crypto-RPC (so Venice is a
  * core, multi-endpoint dependency), reasons with the private Venice model, and on
  * approval redeems on-chain via the 1Shot relayer (gas in USDC, 7702 upgrade).
  *
@@ -25,7 +25,7 @@ import { OneShotRelayer } from "./relayer.js";
 import { VeniceReasoner } from "./venice.js";
 import { VeniceCryptoRpc, veniceNetworkFor } from "./veniceRpc.js";
 
-export interface LiveSteward {
+export interface LiveAgent {
   account: Awaited<ReturnType<typeof createPrincipalAccount>>["account"];
   owner: Awaited<ReturnType<typeof createPrincipalAccount>>["owner"];
   relayer: OneShotRelayer;
@@ -39,7 +39,7 @@ export interface LiveSteward {
   onchainContext(): Promise<string>;
 }
 
-export async function createLiveSteward(): Promise<LiveSteward> {
+export async function createLiveAgent(): Promise<LiveAgent> {
   const chain = resolveChain(config.chainName);
   const { account, owner, client } = await createPrincipalAccount();
 

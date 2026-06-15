@@ -1,4 +1,10 @@
-# BUILD STATE — Steward (MetaMask Cook-Off)
+# BUILD STATE — Agent City (MetaMask Cook-Off)
+
+> ⚠️ **Historical build log — see [README.md](./README.md) for the current state.** This file is a
+> dated, append-only journal of how the build progressed (the project was named *Steward* early on and
+> pivoted to *Agent City*; the on-chain spine carried over unchanged). Test counts and model notes below
+> are snapshots from their dated entries — the authoritative current figures are **57 tests / 13 files**
+> and the README's track table.
 
 > Today 2026-06-06. **Deadline: June 15, 2026, 10:59 UTC** (~3:59 AM PT) — ~9 days.
 > **Decisions (locked):** finish Steward (don't rebuild) · go **deep on the spine**
@@ -9,7 +15,8 @@
 `npm run demo` runs the WHOLE product end-to-end and confirms on Base Sepolia: Venice reads the treasury
 balance through its own **Crypto-RPC** → private **GLM 4.7** proposes a spend → **policy gate + human approval**
 → **1Shot relayer** redemption (USDC gas, EIP-7702) → **status 200 confirmed** (taskId `0x46bfbd10…96ae5`).
-Every scoring track is exercised in one run. typecheck clean, 41/41 unit tests. ✅ `npm run dev` = LIVE web
+Every scoring track is exercised in one run. typecheck clean, 41/41 unit tests *(as of this dated entry;
+current suite is 57 tests / 13 files)*. ✅ `npm run dev` = LIVE web
 dashboard (live banner, Venice on-chain context, approval gate, 1Shot tx status + Basescan link; keyless
 DryRun fallback). ✅ webhook verifier (Ed25519/JWKS, `src/webhook.ts`). Remaining =
 demo video (user records; `docs/DEMO_SCRIPT.md`) + HackQuest submit (MCP loaded). ✅ Mainnet 1Shot proven — see below.

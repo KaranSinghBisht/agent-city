@@ -1,0 +1,13 @@
+{
+  "label": "city-direct-transfer-run-a",
+  "txHash": "0xdc08d059bd2da569e49bbe58e41a127f79f574d4ffb1a27b650e2b904ae98781",
+  "network": "base-sepolia",
+  "explorer": "https://sepolia.basescan.org/tx/0xdc08d059bd2da569e49bbe58e41a127f79f574d4ffb1a27b650e2b904ae98781",
+  "status": "success",
+  "blockNumber": "42538196",
+  "gasUsed": "486371",
+  "logCount": 12,
+  "redeemedDelegationEvents": 6,
+  "fetchedAt": "2026-06-15T03:39:04.091Z",
+  "rpc": "https://sepolia.base.org"
+}

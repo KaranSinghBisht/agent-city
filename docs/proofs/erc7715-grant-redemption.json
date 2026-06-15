@@ -1,0 +1,13 @@
+{
+  "label": "erc7715-grant-redemption",
+  "txHash": "0xaa84871ebefcd49d61fa091c3ac9e77a5037e632ee588c3cacc38a42127c197b",
+  "network": "base-sepolia",
+  "explorer": "https://sepolia.basescan.org/tx/0xaa84871ebefcd49d61fa091c3ac9e77a5037e632ee588c3cacc38a42127c197b",
+  "status": "success",
+  "blockNumber": "42671144",
+  "gasUsed": "564488",
+  "logCount": 12,
+  "redeemedDelegationEvents": 6,
+  "fetchedAt": "2026-06-15T03:39:03.375Z",
+  "rpc": "https://sepolia.base.org"
+}

@@ -641,7 +641,7 @@ footer .fl a:hover{color:var(--ink)}
         <div class="annot-marker"><span>C</span></div>
         <div class="annot-content">
           <h3>Agents pay agents</h3>
-          <p>Workers hit real HTTP 402 paywalled services. Each payment settles as a bounded ERC-7710 redemption, relayed gaslessly through 1Shot with gas paid in USDC.</p>
+          <p>Workers hit real HTTP 402 paywalled services. The gate unlocks on payment submission; each bounded ERC-7710 redemption then settles on-chain, relayed gaslessly through 1Shot with gas paid in USDC.</p>
         </div>
       </li>
       <li>
@@ -685,7 +685,7 @@ footer .fl a:hover{color:var(--ink)}
         <div class="proof-card-inner">
           <div class="pc-tag">Best x402 + ERC-7710 &mdash; Sheet 02/04</div>
           <div class="pc-head">Agents pay agents</div>
-          <p class="pc-body">A worker hits a real HTTP 402 paywalled service and settles the payment as a bounded ERC-7710 redemption. Resource unlocks only after chain confirmation.</p>
+          <p class="pc-body">A worker hits a real HTTP 402 paywalled service; the gate unlocks on payment submission and the bounded ERC-7710 redemption then settles on-chain (verified out-of-band via relayer status / balanceOf).</p>
           <a class="proof-card-link" href="${TX_X402}" target="_blank" rel="noopener">0xbbce&hellip;450b &nearr;</a>
           <div class="stamp-wrap"><span class="stamp-settled">Settled</span></div>
         </div>
@@ -748,7 +748,7 @@ footer .fl a:hover{color:var(--ink)}
         <div class="proof-card-inner">
           <div class="pc-tag">Best Agent &mdash; Bounded Autonomy</div>
           <div class="pc-head">Bounded autonomy</div>
-          <p class="pc-body">Each agent runs a resumable planner &mdash; reason, propose, act &mdash; but only inside its cap. The approval step pauses before any value moves, keeping you in control.</p>
+          <p class="pc-body">Each agent runs a resumable planner &mdash; reason, propose, act &mdash; but only inside its cap. You authorize the budget up front (ERC-7715), a private Venice gate approves each spend, and you can revoke the whole tree in one click.</p>
           <a class="proof-card-link" href="/app">Enter the city &rarr;</a>
         </div>
         <div class="proof-card-title-block">

@@ -1,0 +1,13 @@
+{
+  "label": "x402-pay-per-call-7710",
+  "txHash": "0xbbcecb7cbe662462794cf5cee1c7dcbf3eba22b9669e902f5b8bfb3b1272450b",
+  "network": "base-sepolia",
+  "explorer": "https://sepolia.basescan.org/tx/0xbbcecb7cbe662462794cf5cee1c7dcbf3eba22b9669e902f5b8bfb3b1272450b",
+  "status": "success",
+  "blockNumber": "42528569",
+  "gasUsed": "304227",
+  "logCount": 8,
+  "redeemedDelegationEvents": 4,
+  "fetchedAt": "2026-06-15T03:39:03.116Z",
+  "rpc": "https://sepolia.base.org"
+}

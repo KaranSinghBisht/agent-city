@@ -47,7 +47,7 @@ function post(app: ReturnType<typeof api>, path: string, body: unknown) {
   });
 }
 
-describe("Steward API", () => {
+describe("Agent City API", () => {
   it("serves the demo UI at /", async () => {
     const res = await api([]).request("/");
     expect(res.status).toBe(200);

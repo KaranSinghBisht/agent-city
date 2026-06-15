@@ -23,6 +23,9 @@ export const config = {
     "https://relayer.1shotapi.com/relayers",
   ),
   chainName: optional("CHAIN", "baseSepolia"),
+  // Public base URL of THIS server, used to tell the relayer where to POST signed
+  // status webhooks (push-first settlement). When unset, the orchestrator polls.
+  webhookPublicUrl: process.env.WEBHOOK_PUBLIC_URL,
   // Functions: evaluated lazily so the brain/tests never require secrets to load.
   veniceApiKey: (): string => required("VENICE_API_KEY"),
   rpcUrl: (): string => required("RPC_URL"),

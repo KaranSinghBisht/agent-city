@@ -1,5 +1,14 @@
 # Agent City — ≤3-minute demo video script
 
+> ⚠️ **Not the canonical script — see [`docs/DEMO_FLOW.md`](./DEMO_FLOW.md)** (adversarially honesty-reviewed).
+> This file is an earlier draft kept for reference.
+>
+> ⚠️ **Flask honesty (must not be ambiguous on camera):** the interactive MetaMask **Flask** Advanced-
+> Permissions popup has **NOT** been run end-to-end. The reproducible grant path is `npm run grant:dev`
+> (synthetic ERC-7715 grant, same on-chain bridge). If you stage the grant with `grant:dev`, narrate it as
+> "pre-staged" and do **not** show or imply a live Flask popup. The grant *is* redeemed on-chain
+> (`npm run prove:grant`); only the interactive popup is unproven.
+
 **Thesis to sell:** a **spending firewall for AI agents** — *two locks* on every payment: a **private Venice
 gate** that says *whether*, and a **MetaMask on-chain cap** that says *how much*. Neither trusted; both enforced.
 **The "oh damn" is a moment of NEGATION the judge watches live — the agent trying to spend and being physically
@@ -11,7 +20,9 @@ is up right before recording. Keep it ≤ 2:30. **Tag** @MetaMaskDev, #DevCookOf
 
 > Qualification: the video MUST show the MetaMask Smart Accounts Kit in the MAIN FLOW. Satisfied because every
 > spend is a MetaMask Smart Account delegation **redeemed on-chain** (show the Basescan receipt). The `/grant`
-> Advanced Permissions popup is the strongest on-camera "MetaMask" moment.
+> Advanced Permissions popup would be the strongest on-camera "MetaMask" moment **if** run in Flask —
+> but it has not been run end-to-end (see the banner above); use `npm run grant:dev` and narrate the grant
+> as pre-staged.
 
 ## Track focus (be best in ONE, not present in six)
 Primary **Best 1Shot** (your floor) + **Best A2A** (the swing). The demo also earns **Best Venice** via the

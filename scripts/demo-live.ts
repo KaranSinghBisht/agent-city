@@ -6,9 +6,9 @@
  *
  * Run: npm run demo            (uses CHAIN/.env; start on baseSepolia)
  */
-import { Steward } from "../src/agent/planner.js";
+import { BoundedAgent } from "../src/agent/planner.js";
 import type { AgentEvent } from "../src/agent/types.js";
-import { createLiveSteward } from "../src/live.js";
+import { createLiveAgent } from "../src/live.js";
 
 const log = (m: string): void => {
   process.stdout.write(m + "\n");
@@ -17,7 +17,7 @@ const sleep = (ms: number): Promise<void> =>
   new Promise((r) => setTimeout(r, ms));
 
 async function main(): Promise<void> {
-  const live = await createLiveSteward();
+  const live = await createLiveAgent();
   log(`Treasury smart account: ${live.account.address}`);
 
   const context = await live.onchainContext();
@@ -28,13 +28,13 @@ async function main(): Promise<void> {
     `(0.05 ${live.tokenSymbol} = ${0.05 * 10 ** live.tokenDecimals} base units). Propose the transfer; ` +
     `after it executes, finalize with a one-line summary.`;
 
-  const steward = new Steward(live.reasoner, live.policy, live.executor);
-  let state = await steward.resume(steward.start(goal));
+  const agent = new BoundedAgent(live.reasoner, live.policy, live.executor);
+  let state = await agent.resume(agent.start(goal));
 
   if (state.status === "awaiting_approval" && state.pending) {
     log(`\nPENDING (human gate): ${JSON.stringify(state.pending.action)}`);
     log(">>> approving\n");
-    state = await steward.approve(state, true, "approved (headless demo)");
+    state = await agent.approve(state, true, "approved (headless demo)");
   }
 
   for (const e of state.audit as AgentEvent[]) {

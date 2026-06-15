@@ -59,6 +59,26 @@ async function readEthUsd(): Promise<{ price: number; roundId: bigint }> {
 const fmtUsd = (n: number): string =>
   n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+/**
+ * A well-formed X-PAYMENT header is the base64 of the JSON envelope the x402
+ * client sends (see x402/client.ts): { x402Version, scheme, network, payload }
+ * where payload carries the settlement taskId. We require it to decode and to
+ * contain a taskId before serving the resource, so a bogus header (e.g.
+ * "X-PAYMENT: x") is rejected rather than unlocking the paywall. The redemption
+ * itself is still confirmed on-chain out-of-band (balanceOf / relayer status);
+ * this check makes the gate reject obviously-unpaid requests up front.
+ */
+function hasPaymentProof(header: string | undefined): boolean {
+  if (!header) return false;
+  try {
+    const json = Buffer.from(header, "base64").toString("utf8");
+    const env = JSON.parse(json) as { payload?: { taskId?: unknown } };
+    return typeof env.payload?.taskId === "string" && env.payload.taskId.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Market-Data API: the live Chainlink price, fetched fresh per purchase. */
 async function marketData(): Promise<string> {
   try {
@@ -142,7 +162,7 @@ export function startCityServices(opts: {
   const app = new Hono();
   for (const s of built) {
     app.get(s.path, async (c) =>
-      c.req.header("X-PAYMENT")
+      hasPaymentProof(c.req.header("X-PAYMENT"))
         ? c.json({ data: await s.fetchData() })
         : c.json({ x402Version: 1, accepts: [s.requirement] }, 402),
     );

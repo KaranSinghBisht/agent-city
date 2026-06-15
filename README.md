@@ -15,7 +15,8 @@
 ## Proven on-chain — not a mock
 
 The hard parts are redeemed on **Base** (testnet **and** mainnet). Reproduce with `npm run city` /
-`npm run prove*`. Raw run logs + relayer receipts are pinned in **[docs/proofs/](./docs/proofs/)**.
+`npm run prove*`. The full tx-hash table plus committed `relayer_getStatus` receipt JSONs are in
+**[docs/proofs/](./docs/proofs/)** — enough to check every on-chain claim from the files alone.
 
 | Capability | Track | Evidence (open it) |
 |---|---|---|
@@ -24,7 +25,7 @@ The hard parts are redeemed on **Base** (testnet **and** mainnet). Reproduce wit
 | **Gasless settlement** — every spend redeems via 1Shot, gas in USDC, EIP-7702 | Best 1Shot | **Base mainnet** tx [`0x0349…448bf`](https://basescan.org/tx/0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf) + Base Sepolia gate |
 | **Spend under an ERC-7715 grant** — periodic granted context, decoded + redeemed | Best Agent / qualification | Base Sepolia tx [`0xaa84…197b`](https://sepolia.basescan.org/tx/0xaa84871ebefcd49d61fa091c3ac9e77a5037e632ee588c3cacc38a42127c197b) — `erc20-token-periodic` enforcer accepted the spend |
 | **Private spend-gate** — a Venice model must approve each spend *before* the on-chain redelegation fires (**fail-closed**: no approval ⇒ no spend) | Best Venice | `npm run city` — per-agent gate verdict on every payment; GLM-4.7 zero-retention + Venice Crypto-RPC reads |
-| **Bounded autonomous agent** — reason → propose → act under a hard cap, HITL | Best Agent | `src/agent/planner.ts` + the live City flow |
+| **Bounded autonomous agent** — reason → propose → act under a hard cap, with per-spend human-in-the-loop approval | Best Agent | `src/agent/planner.ts` — the single-agent loop (`npm run demo` / the `/runs` approve path) pauses for human sign-off before each spend. In the live City flow you authorize up front, a Venice gate then approves every spend, and you revoke the whole tree in one click |
 
 Treasury EOA `0x1DC366A33BaA610eA5A60Ba549f619126e590601` is EIP-7702-upgraded on both networks
 (`getCode → 0xef0100…dae32b`). Full hash list: [docs/proofs/](./docs/proofs/).
@@ -89,11 +90,13 @@ Copy `.env.example` → `.env`: `VENICE_API_KEY`, `RPC_URL`, `CHAIN` (`baseSepol
 - **x402:** settlement is a real on-chain **ERC-7710 redemption** (the track thesis), not canonical
   Coinbase x402 (EIP-3009). The demo's 402 gate unlocks on payment submission and verifies settlement
   on-chain out-of-band (`balanceOf`); it does not yet cryptographically verify the `X-PAYMENT` proof.
-- **1Shot status:** settlement is **webhook-push-first** — `POST /webhooks/1shot` receives 1Shot status
-  events, **verifies the Ed25519/JWKS signature** (`src/webhook.ts`, forged signatures → 401), and the
-  orchestrator's `settle()` reads that inbox **before** falling back to `relayer_getStatus` polling
-  (`src/city/webhookInbox.ts`). Polling remains the fallback so the demo works even when 1Shot can't reach
-  a localhost callback URL.
+- **1Shot status:** the webhook receiver is **implemented, Ed25519/JWKS-verified, and unit-tested**
+  (`src/webhook.ts` + `src/webhook.test.ts`; forged signatures → 401). `POST /webhooks/1shot` records each
+  verified event into an in-memory inbox (`src/city/webhookInbox.ts`), and the orchestrator's `settle()`
+  reads that inbox **push-first** before falling back to `relayer_getStatus` polling
+  (`src/city/orchestrator.ts`). The relayer client can send a `destinationUrl` so 1Shot POSTs status
+  directly; in the **current demo** no public callback URL is wired, so status arrives via the **polling
+  fallback** — the push path is verified by tests, not yet by a live signed event.
 - **Reputation:** agent credit is derived from the **settled receipts' quoted price**; it is recomputed in
   memory per server session (the inputs are the on-chain receipts).
 - A full third-party audit (multi-agent) lives at **[docs/AUDIT.md](./docs/AUDIT.md)** — we ran it on
@@ -108,7 +111,7 @@ src/x402/          x402 client + DelegatedPayer (pay-per-call settled via the Ex
 src/agent/         the planner loop (reason → propose → policy → approval → execute) + policy gate
 src/venice.ts      Venice reasoner (private model) · src/veniceRpc.ts  read the chain THROUGH Venice
 src/relayer.ts     1Shot relayer JSON-RPC client · src/webhook.ts  Ed25519/JWKS receiver (unit-tested)
-src/ui/            Onyx design system: landing (/), City app (/app), ERC-7715 grant (/grant)
+src/ui/            Blueprint Civic design system: landing (/), City app (/app), ERC-7715 grant (/grant)
 scripts/           prove-delegation · prove-redelegation · prove-x402 · run-city · demo-live
 ```
 

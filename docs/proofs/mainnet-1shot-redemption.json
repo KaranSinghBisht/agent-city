@@ -1,0 +1,13 @@
+{
+  "label": "mainnet-1shot-redemption",
+  "txHash": "0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf",
+  "network": "base-mainnet",
+  "explorer": "https://basescan.org/tx/0x0349304adead048d8392722e4b89b81914c42599f2fa250078ef0b1980c448bf",
+  "status": "success",
+  "blockNumber": "47023093",
+  "gasUsed": "304887",
+  "logCount": 8,
+  "redeemedDelegationEvents": 4,
+  "fetchedAt": "2026-06-15T03:39:02.603Z",
+  "rpc": "https://mainnet.base.org"
+}

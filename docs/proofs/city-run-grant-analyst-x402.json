@@ -1,0 +1,13 @@
+{
+  "label": "city-run-grant-analyst-x402",
+  "txHash": "0x0ae293df761e5906b8aa02f0fcb95bf5d61606fb1aac28f19b5274b807cb3372",
+  "network": "base-sepolia",
+  "explorer": "https://sepolia.basescan.org/tx/0x0ae293df761e5906b8aa02f0fcb95bf5d61606fb1aac28f19b5274b807cb3372",
+  "status": "success",
+  "blockNumber": "42671258",
+  "gasUsed": "646122",
+  "logCount": 16,
+  "redeemedDelegationEvents": 8,
+  "fetchedAt": "2026-06-15T03:39:03.836Z",
+  "rpc": "https://sepolia.base.org"
+}

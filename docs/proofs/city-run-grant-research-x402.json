@@ -1,0 +1,13 @@
+{
+  "label": "city-run-grant-research-x402",
+  "txHash": "0x99a42cac28c7e712cea4f72eabf9405e813b30cb4522fcba136669d7514c28d6",
+  "network": "base-sepolia",
+  "explorer": "https://sepolia.basescan.org/tx/0x99a42cac28c7e712cea4f72eabf9405e813b30cb4522fcba136669d7514c28d6",
+  "status": "success",
+  "blockNumber": "42671250",
+  "gasUsed": "743600",
+  "logCount": 16,
+  "redeemedDelegationEvents": 8,
+  "fetchedAt": "2026-06-15T03:39:03.581Z",
+  "rpc": "https://sepolia.base.org"
+}
