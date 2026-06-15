@@ -1449,11 +1449,21 @@ async function mmConnect(){
     return true;
   }catch(e){setGrantBar('Connect failed: '+esc(e.message||e),true);return false;}
 }
+/* Make sure the wallet is on the grant's chain (so MetaMask can read the token); add it if missing. */
+async function mmEnsureChain(chainId){
+  if(!window.ethereum)return;
+  var n=Number(chainId),hex='0x'+n.toString(16);
+  var add={84532:{chainId:'0x14a34',chainName:'Base Sepolia',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://sepolia.base.org'],blockExplorerUrls:['https://sepolia.basescan.org']},8453:{chainId:'0x2105',chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']}}[n];
+  try{await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:hex}]});}
+  catch(e){var code=e&&(e.code||(e.data&&e.data.originalError&&e.data.originalError.code));if(code===4902&&add){try{await window.ethereum.request({method:'wallet_addEthereumChain',params:[add]});}catch(_){}}}
+}
 async function mmGrant(){
   if(!mmAccount){var ok=await mmConnect();if(!ok)return;}
   if(!mmCfg)await mmLoadCfg();
   if(!mmCfg||mmCfg.error){setGrantBar('City config unavailable (live mode required).',true);return;}
   if(!window.ethereum){setGrantBar('No wallet provider.',true);return;}
+  setGrantBar('Switching to the right network…');
+  try{await mmEnsureChain(mmCfg.chainId);}catch(e){}
   setGrantBar('Requesting ERC-7715 permission — approve in MetaMask…');
   var periodAmount='0x'+(5n*(10n**6n)).toString(16);
   var expiry=Math.floor(Date.now()/1000)+7*86400;

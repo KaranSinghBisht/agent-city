@@ -519,6 +519,13 @@ async function connect(){
 async function grant(){
   if(!cfg){show('No config.','bad');return;}
   $('#grant').disabled=true;
+  // Make sure the wallet is on the grant's chain so MetaMask can read the token.
+  try{
+    await window.ethereum.request({method:'wallet_switchEthereumChain',params:[{chainId:'0x'+Number(cfg.chainId).toString(16)}]});
+  }catch(_e){
+    var _add={84532:{chainId:'0x14a34',chainName:'Base Sepolia',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://sepolia.base.org'],blockExplorerUrls:['https://sepolia.basescan.org']},8453:{chainId:'0x2105',chainName:'Base',nativeCurrency:{name:'Ether',symbol:'ETH',decimals:18},rpcUrls:['https://mainnet.base.org'],blockExplorerUrls:['https://basescan.org']}}[Number(cfg.chainId)];
+    if(_add){try{await window.ethereum.request({method:'wallet_addEthereumChain',params:[_add]});}catch(__e){}}
+  }
   show('Requesting permission… approve in MetaMask.');
   var periodAmount='0x'+(5n*(10n**6n)).toString(16);
   var expiry=Math.floor(Date.now()/1000)+7*86400;
