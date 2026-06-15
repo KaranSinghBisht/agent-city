@@ -1456,8 +1456,7 @@ async function mmGrant(){
   if(!window.ethereum){setGrantBar('No wallet provider.',true);return;}
   setGrantBar('Requesting ERC-7715 permission — approve in MetaMask…');
   var periodAmount='0x'+(5n*(10n**6n)).toString(16);
-  var expiry=Math.floor(Date.now()/1000)+7*86400;
-  var req={chainId:'0x'+Number(mmCfg.chainId).toString(16),to:mmCfg.agent,permission:{type:'erc20-token-periodic',data:{tokenAddress:mmCfg.usdc,periodAmount:periodAmount,periodDuration:86400,justification:'Agent City may spend ≤5 USDC/day on your behalf (revocable).'}},rules:[{type:'expiry',data:{timestamp:expiry}}]};
+  var req={chainId:'0x'+Number(mmCfg.chainId).toString(16),to:mmCfg.agent,permission:{type:'erc20-token-periodic',isAdjustmentAllowed:false,data:{tokenAddress:mmCfg.usdc,periodAmount:periodAmount,periodDuration:86400,justification:'Agent City may spend ≤5 USDC/day on your behalf (revocable).'}}};
   try{
     var granted=await window.ethereum.request({method:'wallet_requestExecutionPermissions',params:[req]});
     var r=await fetch('/city/grant',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({granted:granted,account:mmAccount})});
