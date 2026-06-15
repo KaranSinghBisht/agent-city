@@ -20,3 +20,4 @@ coverage/
 # OMC orchestration state (local only)
 .omc/
 /public
+.vercel
