@@ -45,6 +45,35 @@ export function buildCityReasoner(): CityDeps["reason"] {
     ]);
 }
 
+/**
+ * Once the workers have bought their data, Venice composes the run's final
+ * deliverable (e.g. a market brief) from ONLY what they actually purchased.
+ */
+export function buildCityComposer(): CityDeps["compose"] {
+  const venice = new VeniceReasoner();
+  return async (q) =>
+    venice.complete([
+      {
+        role: "system",
+        content:
+          "You are Agent City's lead analyst. Using ONLY the findings the worker " +
+          "agents purchased, write a tight, decisive brief for the goal: 3-5 sentences, " +
+          "plain prose, no headers, no preamble, no disclaimers. Lead with the call.",
+      },
+      {
+        role: "user",
+        content:
+          `Goal: ${q.goal.slice(0, 400)}\n\nFindings the agents bought:\n` +
+          q.findings
+            .map(
+              (f) => `- ${f.role} (${f.service ?? "service"}): ${f.data ?? "(no data)"}`,
+            )
+            .join("\n")
+            .slice(0, 1500),
+      },
+    ]);
+}
+
 export interface CityBase {
   deps: Omit<CityDeps, "onUpdate">;
   network: string;
@@ -125,6 +154,7 @@ export async function createCityBase(): Promise<CityBase> {
       repStore,
       reason: buildCityReasoner(),
       judge: buildSpendGate(),
+      compose: buildCityComposer(),
     },
     network: config.chainName,
     explorerTxBase: isTestnet

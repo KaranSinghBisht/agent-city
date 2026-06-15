@@ -315,6 +315,24 @@ export async function runCity(
       deps.onUpdate?.();
     }
   }
+  // Compose the final deliverable from what the workers actually purchased, BEFORE
+  // marking the run done — so the UI's last poll renders it. Non-fatal enrichment.
+  if (deps.compose) {
+    const findings = run.ledger
+      .filter((e) => e.settled && e.data)
+      .map((e) => ({ role: e.role, service: e.service, data: e.data }));
+    if (findings.length) {
+      try {
+        run.deliverable = (
+          await deps.compose({ goal: run.goal, findings })
+        ).trim();
+        deps.onUpdate?.();
+      } catch {
+        // a Venice hiccup must never fail a settled run
+      }
+    }
+  }
+
   run.status = run.ledger.every((e) => e.settled) ? "done" : "failed";
   run.result = summarize(run);
   deps.onUpdate?.();

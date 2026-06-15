@@ -57,6 +57,8 @@ export interface CityRun {
   status: "queued" | "running" | "done" | "failed";
   ledger: LedgerEntry[];
   result?: string;
+  /** The final deliverable Venice composes from what the workers actually purchased. */
+  deliverable?: string;
   network?: string;
   explorerTxBase?: string;
   /** Whose authority roots the payments: a browser ERC-7715 grant or the demo treasury. */
@@ -108,4 +110,12 @@ export interface CityDeps {
   webhookInbox?: {
     lookup: (id: string) => { status: number; hash?: string } | undefined;
   };
+  /**
+   * Venice composes the run's final deliverable from what the workers actually
+   * purchased (e.g. a market brief from the price + sentiment data). Non-fatal enrichment.
+   */
+  compose?: (q: {
+    goal: string;
+    findings: { role: string; service?: string; data?: string }[];
+  }) => Promise<string>;
 }

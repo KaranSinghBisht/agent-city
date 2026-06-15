@@ -7,7 +7,7 @@ import { parseUnits } from "viem";
 import { generatePrivateKey } from "viem/accounts";
 
 import { resolveChain } from "../src/chains.js";
-import { buildCityReasoner } from "../src/city/live.js";
+import { buildCityComposer, buildCityReasoner } from "../src/city/live.js";
 import { runCity } from "../src/city/orchestrator.js";
 import { buildSpendGate } from "../src/city/spendGate.js";
 import type { ReputationStore } from "../src/city/reputation.js";
@@ -95,6 +95,7 @@ async function main(): Promise<void> {
     onUpdate: snap,
     reason: buildCityReasoner(), // Venice purchase reasoning (non-fatal if the key is absent)
     judge: buildSpendGate(), // Venice spend-gate: private approval gates each spend (fail-closed)
+    compose: buildCityComposer(), // Venice composes the final brief from the agents' purchases
   };
 
   log(`Hiring ${specs.length} workers; each buys from a real x402 service → 1Shot...`);
@@ -116,6 +117,9 @@ async function main(): Promise<void> {
       log(
         `   ⛨ gate: Venice ${e.gate.approved ? "APPROVED" : "BLOCKED"} — ${e.gate.reason}`,
       );
+  }
+  if (run.deliverable) {
+    log(`\n=== DELIVERABLE — Venice brief ===\n${run.deliverable}`);
   }
   log(`\n${run.status.toUpperCase()} — ${run.result}`);
   if (run.status !== "done") process.exitCode = 1;

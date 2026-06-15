@@ -610,6 +610,22 @@ textarea#goal:disabled{opacity:.4}
 /* status column */
 .agent-status-col{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
 
+/* deliverable — the Venice-composed brief (the run's actual output) */
+.deliverable{
+  border:1px solid var(--signal);border-left:3px solid var(--signal);
+  background:var(--signal-dim);padding:14px 16px;margin-bottom:14px;
+  box-shadow:0 0 22px rgba(224,92,26,.14);
+}
+.del-head{
+  font-family:var(--display);font-size:12px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--signal);margin-bottom:8px;
+}
+.del-by{
+  font-family:var(--mono);font-size:9px;color:var(--ink-3);
+  letter-spacing:.04em;text-transform:none;margin-left:8px;
+}
+.del-body{font-family:var(--body);font-size:14px;line-height:1.6;color:var(--ink)}
+
 /* summary row */
 .summary{
   margin-top:14px;padding:12px 14px;
@@ -1187,6 +1203,14 @@ function render(run){
     agentsSection.className='agents-section';
     agentsSection.innerHTML='<div class="agents" id="agents-body"></div>';
     out.appendChild(agentsSection);
+  }
+
+  /* Deliverable — the Venice-composed brief — pinned to the top of #out when ready. */
+  if(run.deliverable){
+    var del=out.querySelector('#deliverable');
+    if(!del){del=document.createElement('div');del.id='deliverable';del.className='deliverable';out.insertBefore(del,out.firstChild);}
+    del.innerHTML='<div class="del-head">&#9745; Deliverable <span class="del-by">composed by Venice from the agents\\' purchases</span></div>'
+      +'<div class="del-body">'+esc(run.deliverable)+'</div>';
   }
 
   /* update ledger volume label */
