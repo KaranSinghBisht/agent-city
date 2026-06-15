@@ -281,8 +281,8 @@ approves **each** spend, and you revoke the whole delegation tree in one click. 
 **not** add a separate per-spend human pause on top of the Venice gate.
 
 **SOURCE.**
-- Single-agent HITL: `src/agent/planner.ts` — `Steward.consider` (sets `awaiting_approval` when policy
-  `requiresApproval`), `Steward.approve` (human resumes/rejects); policy in `src/agent/policy.ts`
+- Single-agent HITL: `src/agent/planner.ts` — `BoundedAgent.resume` (sets `awaiting_approval` when policy
+  `requiresApproval`), `BoundedAgent.approve` (human resumes/rejects); policy in `src/agent/policy.ts`
   (`checkPolicy`). HTTP surface: `src/api.ts` — `POST /runs/:id/approve`, `GET /runs/:id`. Driver:
   `scripts/demo-live.ts`.
 - Live City flow (authorize up front, Venice gate per spend, one-click revoke): `src/api.ts` —

@@ -15,7 +15,7 @@
 ## Proven on-chain — not a mock
 
 The hard parts are redeemed on **Base** (testnet **and** mainnet). Reproduce with `npm run city` /
-`npm run prove*`. The full tx-hash table plus committed `relayer_getStatus` receipt JSONs are in
+`npm run prove*`. The full tx-hash table plus committed on-chain receipt JSONs (`eth_getTransactionReceipt` / `eth_getCode`) are in
 **[docs/proofs/](./docs/proofs/)** — enough to check every on-chain claim from the files alone.
 
 | Capability | Track | Evidence (open it) |

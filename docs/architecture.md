@@ -26,7 +26,7 @@ flowchart TD
 
 | File | Role |
 |---|---|
-| `src/agent/planner.ts` | The single-agent planner loop (`Steward`) — reason → propose → (policy) → **human approval** → execute → finalize. Resumable; pauses at the human gate. Drives `npm run demo` (not the live Agent City `/app` flow, which is the deterministic orchestrator + Venice spend-gate below). |
+| `src/agent/planner.ts` | The single-agent planner loop (`BoundedAgent`) — reason → propose → (policy) → **human approval** → execute → finalize. Resumable; pauses at the human gate. Drives `npm run demo` (not the live Agent City `/app` flow, which is the deterministic orchestrator + Venice spend-gate below). |
 | `src/agent/policy.ts` | Off-chain budget gate that mirrors the on-chain delegation caveats, so the planner never proposes what the chain would reject. |
 | `src/city/spendGate.ts` | Agent City's per-spend gate: a deterministic cap floor (always enforced) **plus** a private Venice judgment. Each City payment must clear it **before** any on-chain redelegation fires; fail-closed (a gate error holds the spend). |
 | `src/venice.ts` | Venice reasoner (OpenAI-compatible). Private model; `disable_thinking` suffix so reasoning models return clean JSON. |

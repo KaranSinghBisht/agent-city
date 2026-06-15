@@ -37,7 +37,7 @@ Watch for, in order, per worker:
 `https://sepolia.basescan.org/address/0x1DC366A33BaA610eA5A60Ba549f619126e590601`
 → recent transactions; the USDC balance ticks down by the relayer fee each run.
 
-> `npm run demo` runs the **single-agent** planner path (`Steward`, `src/agent/planner.ts`) with a per-spend
+> `npm run demo` runs the **single-agent** planner path (`BoundedAgent`, `src/agent/planner.ts`) with a per-spend
 > human-approval gate — a separate, older path from the live City flow. Use `npm run city` to exercise
 > what the `/app` UI dispatches.
 

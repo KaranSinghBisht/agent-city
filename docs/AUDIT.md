@@ -25,7 +25,7 @@ Real, on-chain-proven delegation engine with an exceptionally honest BUILD_STATE
 |---|---|---|
 | MetaMask Cook-Off judge (Best Agent + Smart Accounts/7715) | **6.5** | Qualifies on Smart Accounts (ERC-7710 + 7702, backend-signed), but does NOT win the ERC-7715 narrative it pitches — the wallet grant is never redeemed. |
 | Tough-but-fair (independently verified every on-chain claim) | **7.8** | Top-quartile, carried by reproducible on-chain proof + radical honesty. Likely wins Best 1Shot; ceiling capped by demo-stub infra and unbuilt 7715 front door. |
-| Pragmatic "does it WIN cash" judge | **7.0** | Top-3 potential in A2A + 1Shot IF the video ships against the real Agent City UI. As-is (no video, mismatched Steward/City story, unconfirmed registration): does not place. |
+| Pragmatic "does it WIN cash" judge | **7.0** | Top-3 potential in A2A + 1Shot IF the video ships against the real Agent City UI. As-is (no video, incomplete demo coverage, unconfirmed registration): does not place. |
 
 ### Track scores (consolidated)
 
@@ -105,7 +105,7 @@ this file. The text below is preserved verbatim as the original audit record.
 
 9. **[DEMO COHERENCE · medium] Two products in one repo.** README + `docs/DEMO_SCRIPT.md` + `docs/TESTING.md` describe "STEWARD" (single treasurer, "Run" button, per-step approval box); the shipped UI is "AGENT CITY" (Mayor → Manager → workers, "Dispatch the city"). The 3-min script narrates a UI that no longer exists. Pick ONE story (Agent City is stronger) and rewrite the script + README to the actual `/grant → /app → dispatch → Basescan → revoke` flow. README also never mentions Agent City at all.
 
-10. **[BEST AGENT · medium] HITL regressed in the City rewrite.** The old `/runs` path had true per-spend approval (`/runs/:id/approve` → `steward.approve()`); the new `/city/run` path has a cosmetic one-time toggle and `runCity` has no pause/approve logic. The "bounded autonomy" moment a Best-Agent judge looks for is gone from the shipped UI. Consider restoring a visible approval pause in the City flow.
+10. **[BEST AGENT · medium] HITL regressed in the City rewrite.** The old `/runs` path had true per-spend approval (`/runs/:id/approve` → `BoundedAgent.approve()`); the new `/city/run` path has a cosmetic one-time toggle and `runCity` has no pause/approve logic. The "bounded autonomy" moment a Best-Agent judge looks for is gone from the shipped UI. Consider restoring a visible approval pause in the City flow.
 
 11. **[DUPLICATION · medium] Security-critical logic duplicated across `src/` and `scripts/`** (the audit lists several): `recordingExecutor` (verbatim in `orchestrator.ts:35` + `prove-x402.ts:47`), `buildSubBudget`/`buildA2AContext` (the A2A chain construction — the core security primitive — in `orchestrator.ts:46` + `prove-redelegation.ts:52`), relayer token-bootstrap (6 sites), and the status-poll loop (5 sites). A cap/ordering fix must be made in every copy or they silently diverge. Fix: extract shared helpers into `src/delegation/` and `src/relayer.ts`; scripts import them.
 
